@@ -1,0 +1,1 @@
+ALTER TABLE "hypothesis" ADD COLUMN "embedding" vector(1024);

@@ -1,0 +1,1 @@
+ALTER TABLE "persona_kenmerk" DROP COLUMN "laatst_hindsight_backup_op";

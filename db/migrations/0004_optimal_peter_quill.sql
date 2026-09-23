@@ -1,0 +1,1 @@
+ALTER TABLE "persona_kenmerk" ADD COLUMN "laatst_hindsight_backup_op" timestamp with time zone;

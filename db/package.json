@@ -1,0 +1,24 @@
+{
+  "name": "chronicle-db",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Postgres/Drizzle schema and migrations for Chronicle's Persona layer",
+  "type": "module",
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
+    "test:episode": "node episode.integration.test.mjs",
+    "studio": "drizzle-kit studio"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.20.0",
+    "dotenv": "^17.4.2",
+    "drizzle-kit": "^0.31.10",
+    "typescript": "^6.0.3"
+  }
+}

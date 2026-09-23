@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chronicle — Instellingen</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background: #0b1220; color: #e2e8f0; }
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #1e293b; background: #0f172a; position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+  .dot.err { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+  header .spacer { flex: 1; }
+  button { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+  button:hover { background: #334155; }
+  button.primary { background: #1d4ed8; border-color: #2563eb; }
+  button:disabled { opacity: .5; cursor: wait; }
+  a.tab { color: #94a3b8; text-decoration: none; font-size: 12px; padding: 6px 10px; border-radius: 6px; }
+  a.tab:hover { background: #1e293b; color: #e2e8f0; }
+  main { max-width: 900px; margin: 0 auto; padding: 20px; }
+  nav.tabs { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid #1e293b; }
+  nav.tabs button { border: none; background: none; padding: 8px 14px; border-radius: 8px 8px 0 0; color: #94a3b8; font-size: 13px; }
+  nav.tabs button.active { background: #16223a; color: #f8fafc; }
+  .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 13px; margin: 0 0 10px; font-weight: 600; color: #f8fafc; }
+  .card p.desc { font-size: 12px; color: #64748b; margin: 0 0 10px; }
+  .row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .kv { font-size: 12.5px; color: #94a3b8; margin: 4px 0; word-break: break-all; }
+  .kv b { color: #cbd5e1; font-weight: 500; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 500; }
+  .p-ok { background: rgba(34,197,94,.15); color: #22c55e; }
+  .p-err { background: rgba(239,68,68,.15); color: #ef4444; }
+  .p-warn { background: rgba(245,158,11,.15); color: #f59e0b; }
+  .p-mut { background: rgba(148,163,184,.15); color: #94a3b8; }
+  select, input { background: #0b1220; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; padding: 8px 10px; font-size: 13px; }
+  code { background: #0b1220; border: 1px solid #1e293b; padding: 1px 6px; border-radius: 4px; font-size: 11.5px; color: #93c5fd; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .bignum { font-size: 22px; font-weight: 700; color: #f8fafc; }
+  .bignum small { font-size: 11px; color: #64748b; font-weight: 400; display: block; }
+  .evt { display: flex; gap: 10px; font-size: 12.5px; padding: 6px 0; border-bottom: 1px solid #16213a; }
+  .evt time { color: #64748b; white-space: nowrap; font-size: 11px; }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #14532d; border: 1px solid #22c55e; color: #dcfce7; padding: 10px 16px; border-radius: 8px; font-size: 13px; display: none; }
+  .overlay { position: fixed; inset: 0; background: rgba(2,6,17,.85); display: flex; align-items: center; justify-content: center; z-index: 20; }
+  .card.login { width: 380px; }
+  .empty { padding: 20px; text-align: center; color: #475569; font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="dot" id="dot"></div>
+  <h1>Chronicle — Instellingen</h1>
+  <span class="spacer"></span>
+  <a class="tab" href="/ui">← Logs</a>
+  <button onclick="loadAll()">Verversen</button>
+</header>
+<main>
+  <nav class="tabs">
+    <button class="active" data-tab="status" onclick="tab('status')">Systeem</button>
+    <button data-tab="bronnen" onclick="tab('bronnen')">Bronnen</button>
+    <button data-tab="model" onclick="tab('model')">Embedding &amp; AI</button>
+    <button data-tab="activiteit" onclick="tab('activiteit')">Activiteit</button>
+    <button data-tab="toegang" onclick="tab('toegang')">Toegang</button>
+  </nav>
+
+  <!-- ——— Systeem ——— -->
+  <section id="tab-status">
+    <div class="grid2">
+      <div class="card"><h2>Database</h2><div id="stDb"><div class="empty">Laden…</div></div></div>
+      <div class="card"><h2>Embeddings</h2><div id="stEmb"><div class="empty">Laden…</div></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h2>Capture-proces (4577)</h2><div id="stCap"><div class="empty">Laden…</div></div></div>
+      <div class="card"><h2>Memory-proces (4578)</h2><div id="stMem"><div class="empty">Laden…</div></div></div>
+    </div>
+  </section>
+
+  <!-- ——— Bronnen ——— -->
+  <section id="tab-bronnen" style="display:none">
+    <div class="card">
+      <h2>Ingestie-bronnen</h2>
+      <p class="desc">Elke manier waarop data Foundation in gepompt kan worden, met het officiële endpoint en wat er tot nu toe binnenkwam. Typewards staan vast in de server — een bron verandert dus niet van type.</p>
+      <div id="bronnenList"><div class="empty">Laden…</div></div>
+    </div>
+  </section>
+
+  <!-- ——— Embedding & AI ——— -->
+  <section id="tab-model" style="display:none">
+    <div class="card">
+      <h2>Embedding-model</h2>
+      <p class="desc">Lokaal ONNX-model (geen cloud) voor alle semantische vergelijkingen. Wisselen van model triggert automatisch een achtergrond re-embed van alles.</p>
+      <div class="row">
+        <select id="embSel"></select>
+        <button class="primary" id="embBtn" onclick="saveModel()">Model wisselen</button>
+      </div>
+      <div class="kv" id="embInfo"></div>
+      <div class="kv" style="color:#f59e0b" id="embWarn"></div>
+    </div>
+    <div class="card">
+      <h2>LLM / provider</h2>
+      <p class="desc">Foundation zelf draait geen cloud-LLM: embeddings zijn lokaal, en alle epistemiek (hypotheses, promoties) gebeurt door de mens — bewust. LLM-integraties (Hindsight op de VPS, eventueel een reasoner) configureren hun eigen provider buiten deze server; zodra Foundation een eigen reasoner-knop krijgt, komt die hier.</p>
+      <div class="kv"><b>Hindsight:</b> draait zelfstandig op deze VPS — configuratie in Hindsight zelf, geen instelling hier.</div>
+      <div class="kv"><b>Reflectie-pijp:</b> nog niet aangesloten — staat op de roadmap.</div>
+    </div>
+  </section>
+
+  <!-- ——— Activiteit ——— -->
+  <section id="tab-activiteit" style="display:none">
+    <div class="card">
+      <h2>Capture-activiteit</h2>
+      <p class="desc">Wat er recentelijk binnenkwam, per bron — handig om te zien of een specifieke bron nog leeft.</p>
+      <div id="events"><div class="empty">Laden…</div></div>
+    </div>
+  </section>
+
+  <!-- ——— Toegang ——— -->
+  <section id="tab-toegang" style="display:none">
+    <div class="card">
+      <h2>Bearer-token</h2>
+      <p class="desc">De token waarmee bronnen en deze UI zich authenticeren.</p>
+      <div class="row">
+        <input id="tokView" type="text" readonly style="flex:1">
+        <button onclick="document.getElementById('tokView').type = document.getElementById('tokView').type === 'password' ? 'text' : 'password'">Tonen/verbergen</button>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('tokView').value); toast('Token gekopieerd')">Kopiëren</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Netwerk</h2>
+      <div class="kv"><b>Binding:</b> 4577 en 4578 op 127.0.0.1 — hardcoded, niet wijzigbaar (bewust).</div>
+      <div class="kv"><b>Database:</b> host-poort 5434 — hoort dicht bij de firewall (<code>ufw deny 5434</code>).</div>
+      <div class="kv"><b>Extern:</b> alleen via reverse proxy met TLS naar 127.0.0.1:4577.</div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="gate" style="display:none">
+  <div class="card login">
+    <h2>Token vereist</h2>
+    <p class="desc">Plak de bearer-token (pm2-logging of server/data/token.txt).</p>
+    <input id="tokIn" type="password" placeholder="Bearer-token" style="width:100%">
+    <div class="row"><button class="primary" onclick="saveTok()">Verbinden</button></div>
+  </div>
+</div>
+
+<script>
+let TOKEN = localStorage.getItem("chronicle_token") || "";
+
+function saveTok() {
+  TOKEN = document.getElementById("tokIn").value.trim();
+  localStorage.setItem("chronicle_token", TOKEN);
+  loadAll();
+}
+
+async function api(path) {
+  const r = await fetch(path, { headers: { Authorization: "Bearer " + TOKEN } });
+  if (r.status === 401) { document.getElementById("gate").style.display = "flex"; throw new Error("401"); }
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s ?? ""; return d.innerHTML; }
+function fmtT(iso) { return iso ? new Date(iso).toLocaleTimeString("nl-NL") : "—"; }
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2500); }
+function pill(txt, cls) { return '<span class="pill p-' + cls + '">' + esc(txt) + "</span>"; }
+
+function tab(name) {
+  document.querySelectorAll("nav.tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  ["status","bronnen","model","activiteit","toegang"].forEach(t =>
+    document.getElementById("tab-" + t).style.display = t === name ? "" : "none");
+}
+
+async function loadStatus() {
+  try {
+    const s = await api("/api/settings/status");
+    document.getElementById("stDb").innerHTML =
+      '<div class="kv"><b>Verbinding:</b> ' + pill(s.db === "ok" ? "online" : "offline", s.db === "ok" ? "ok" : "err") + "</div>" +
+      '<div class="kv"><b>Memory-schema:</b> ' + pill(s.memorySchema, s.memorySchema === "ok" ? "ok" : "warn") + "</div>" +
+      (s.dbError ? '<div class="kv" style="color:#ef4444">' + esc(s.dbError) + "</div>" : "");
+    document.getElementById("stEmb").innerHTML =
+      '<div class="kv"><b>Status:</b> ' + pill(s.embeddings, s.embeddings === "ok" ? "ok" : "err") + "</div>" +
+      '<div class="kv"><b>Model:</b> ' + esc(s.embeddingsModel || "—") + "</div>";
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("dot").className = "dot";
+  } catch (e) { document.getElementById("dot").className = "dot err"; }
+
+  try {
+    const cap = await api("/api/settings/resource-usage");
+    document.getElementById("stCap").innerHTML =
+      '<div class="bignum">' + (cap.memoryMB || "?") + " MB<small>geheugen</small></div>" +
+      '<div class="kv"><b>CPU:</b> ' + esc(cap.cpuPercent ?? "?") + "% · <b>Uptime:</b> ' + esc(fmtDur(cap.uptime)) + "</div>";
+  } catch (e) { document.getElementById("stCap").innerHTML = '<div class="empty">niet beschikbaar</div>'; }
+
+  try {
+    const mem = await api("/api/memory/resource-usage");
+    document.getElementById("stMem").innerHTML =
+      '<div class="bignum">' + (mem.memoryMB || "?") + " MB<small>geheugen</small></div>" +
+      '<div class="kv"><b>CPU:</b> ' + esc(mem.cpuPercent ?? "?") + "% · <b>Uptime:</b> ' + esc(fmtDur(mem.uptime)) + "</div>";
+  } catch (e) { document.getElementById("stMem").innerHTML = '<div class="empty">niet beschikbaar</div>'; }
+}
+
+function fmtDur(s) { if (s == null) return "?"; const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h ? h + "u " + m + "m" : m + "m"; }
+
+async function loadBronnen() {
+  try {
+    const logs = await api("/api/ingest-logs?limit=500");
+    const byType = {};
+    for (const o of logs.objects || []) byType[o.object_type] = (byType[o.object_type] || 0) + 1;
+    const BESCHRIJVING = {
+      "chat": { naam: "AI-chats (extensie, bulk-import)", endpoint: "/api/ingest/chat" },
+      "capture": { naam: "Desktop-capture (Capture RS)", endpoint: "/api/ingest/capture" },
+      "document": { naam: "Documenten", endpoint: "/api/ingest/document" },
+      "diary": { naam: "Audio/video-log (Diary)", endpoint: "/api/ingest/diary" },
+    };
+    let h = "";
+    for (const [type, d] of Object.entries(BESCHRIJVING)) {
+      h += '<div class="evt"><div style="flex:1"><b>' + esc(d.naam) + "</b><div class='kv'><code>POST " + esc(d.endpoint) + "</code></div></div>" +
+        "<div>" + pill((byType[type] || 0) + " binnen", "mut") + "</div></div>";
+    }
+    h += '<div class="evt"><div style="flex:1"><b>Legacy-inbox (app-import)</b><div class="kv"><code>POST /api/objects/import</code></div></div>' +
+      "<div>" + pill((logs.inbox || []).length + " in wachtrij", "mut") + "</div></div>";
+    document.getElementById("bronnenList").innerHTML = h;
+  } catch (e) { document.getElementById("bronnenList").innerHTML = '<div class="empty">laden mislukt</div>'; }
+}
+
+async function loadModel() {
+  try {
+    const m = await api("/api/settings/embedding-model");
+    const sel = document.getElementById("embSel");
+    sel.innerHTML = (m.options || []).map(o => "<option value='" + esc(o) + "'" + (o === m.model ? " selected" : "") + ">" + esc(o) + "</option>").join("");
+    document.getElementById("embInfo").innerHTML = "<b>Actief:</b> " + esc(m.model);
+  } catch (e) {}
+}
+
+async function saveModel() {
+  const btn = document.getElementById("embBtn");
+  btn.disabled = true; btn.textContent = "Wisselen…";
+  try {
+    const sel = document.getElementById("embSel");
+    const m = await fetch("/api/settings/embedding-model", {
+      method: "PATCH",
+      headers: { Authorization: "Bearer " + TOKEN, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: sel.value }),
+    }).then(r => r.json());
+    if (m.error) throw new Error(m.error);
+    document.getElementById("embInfo").innerHTML = "<b>Actief:</b> " + esc(m.model);
+    document.getElementById("embWarn").textContent = "Re-embed draait op de achtergrond — oude en nieuwe vectors zijn pas weer vergelijkbaar als die klaar is.";
+    toast("Model gewisseld naar " + m.model);
+  } catch (e) { toast("Mislukt: " + e.message); }
+  btn.disabled = false; btn.textContent = "Model wisselen";
+}
+
+async function loadEvents() {
+  try {
+    const a = await api("/api/settings/capture-activity");
+    const list = a.entries || [];
+    document.getElementById("events").innerHTML = list.length
+      ? list.map(e => '<div class="evt"><time>' + esc(fmtT(e.at || e.timestamp)) + "</time><div>" + esc(e.title || "?") +
+          "</div><div style='margin-left:auto'>" + pill(e.sourceProvider || e.type || "?", "mut") + "</div></div>").join("")
+      : '<div class="empty">Nog geen recente activiteit</div>';
+  } catch (e) { document.getElementById("events").innerHTML = '<div class="empty">laden mislukt</div>'; }
+}
+
+async function loadToken() {
+  try {
+    const t = await api("/api/settings/token");
+    const v = document.getElementById("tokView");
+    v.value = t.token || ""; v.type = "password";
+  } catch (e) {}
+}
+
+function loadAll() { loadStatus(); loadBronnen(); loadModel(); loadEvents(); loadToken(); }
+
+if (!TOKEN) document.getElementById("gate").style.display = "flex"; else loadAll();
+setInterval(() => { loadStatus(); loadEvents(); }, 15000);
+</script>
+</body>
+</html>

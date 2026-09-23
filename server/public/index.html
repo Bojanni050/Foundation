@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chronicle — Ingestie &amp; Capture</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; background: #0b1220; color: #e2e8f0; }
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #1e293b; background: #0f172a; position: sticky; top: 0; z-index: 5; }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+  .dot.err { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+  header .spacer { flex: 1; }
+  .live { font-size: 12px; color: #94a3b8; }
+  button { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; }
+  button:hover { background: #334155; }
+  main { display: grid; grid-template-columns: 1fr 420px; gap: 0; height: calc(100vh - 53px); }
+  .list { overflow-y: auto; }
+  .stats { display: flex; gap: 10px; padding: 12px 20px 4px; }
+  .stat { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 8px 14px; font-size: 12px; }
+  .stat b { display: block; font-size: 18px; color: #f8fafc; }
+  .stat small { color: #64748b; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; color: #64748b; font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 10px 8px 6px; position: sticky; top: 0; background: #0b1220; }
+  td { padding: 8px; border-top: 1px solid #111c30; cursor: pointer; }
+  tr:hover td { background: #101a2c; }
+  tr.sel td { background: #14213a; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .b-chat { background: rgba(56,189,248,.15); color: #38bdf8; }
+  .b-capture { background: rgba(248,113,113,.15); color: #f87171; }
+  .b-document { background: rgba(251,191,36,.15); color: #fbbf24; }
+  .b-diary { background: rgba(167,139,250,.15); color: #a78bfa; }
+  .b-inbox { background: rgba(148,163,184,.15); color: #94a3b8; }
+  .ok { color: #22c55e; } .pend { color: #f59e0b; }
+  .detail { border-left: 1px solid #1e293b; background: #0f172a; padding: 16px; overflow-y: auto; }
+  .detail h2 { font-size: 14px; margin: 0 0 4px; }
+  .meta { font-size: 12px; color: #64748b; margin-bottom: 12px; }
+  .kv { font-size: 12px; margin: 3px 0; color: #94a3b8; word-break: break-all; }
+  .kv b { color: #cbd5e1; font-weight: 500; }
+  pre { background: #0b1220; border: 1px solid #1e293b; border-radius: 8px; padding: 10px; font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow-y: auto; margin: 8px 0; }
+  .sec { margin-top: 14px; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
+  .turn { border-left: 2px solid #334155; padding: 6px 10px; margin: 6px 0; font-size: 12.5px; }
+  .turn .role { font-size: 10.5px; color: #64748b; text-transform: uppercase; }
+  .overlay { position: fixed; inset: 0; background: rgba(2,6,17,.85); display: flex; align-items: center; justify-content: center; z-index: 20; }
+  .card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 24px; width: 380px; }
+  .card h2 { margin: 0 0 6px; font-size: 15px; }
+  .card p { margin: 0 0 12px; font-size: 12.5px; color: #94a3b8; }
+  .card input { width: 100%; background: #0b1220; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; padding: 8px; font-size: 13px; }
+  .card .row { display: flex; gap: 8px; margin-top: 12px; }
+  .empty { padding: 40px; text-align: center; color: #475569; font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="dot" id="dot"></div>
+  <h1>Chronicle — Ingestie &amp; Capture</h1>
+  <span class="live" id="live">—</span>
+  <span class="spacer"></span>
+  <a href="/ui/settings.html" style="color:#94a3b8;text-decoration:none;font-size:12px;padding:6px 10px;border:1px solid #334155;border-radius:6px">⚙ Instellingen</a>
+  <button onclick="location.reload()">Verversen</button>
+</header>
+<main>
+  <div class="list">
+    <div class="stats" id="stats"></div>
+    <table id="tbl">
+      <thead><tr><th>Tijd</th><th>Type</th><th>Bron</th><th>Titel</th><th>Status</th><th>Brug</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty">Nog geen data — stuur iets naar /api/ingest/…</div>
+  </div>
+  <div class="detail" id="detail"><div class="empty">Klik op een rij voor details</div></div>
+</main>
+
+<div class="overlay" id="gate" style="display:none">
+  <div class="card">
+    <h2>Token vereist</h2>
+    <p>Plak de bearer-token (te vinden in de pm2-logging of server/data/token.txt).</p>
+    <input id="tok" type="password" placeholder="Bearer-token">
+    <div class="row">
+      <button onclick="saveTok()">Verbinden</button>
+      <span class="live" id="gateErr" style="color:#f87171"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+let TOKEN = localStorage.getItem("chronicle_token") || "";
+let selId = null;
+
+function saveTok() {
+  TOKEN = document.getElementById("tok").value.trim();
+  localStorage.setItem("chronicle_token", TOKEN);
+  load();
+}
+
+async function api(path) {
+  const r = await fetch(path, { headers: { Authorization: "Bearer " + TOKEN } });
+  if (r.status === 401) { showGate("Token geweigerd"); throw new Error("401"); }
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+
+function showGate(msg) {
+  document.getElementById("gate").style.display = "flex";
+  if (msg) document.getElementById("gateErr").textContent = msg;
+}
+
+function fmtTime(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("nl-NL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s ?? ""; return d.innerHTML; }
+
+async function load() {
+  const dot = document.getElementById("dot");
+  try {
+    const data = await api("/api/ingest-logs");
+    dot.className = "dot";
+    document.getElementById("gate").style.display = "none";
+    render(data);
+  } catch (e) {
+    dot.className = "dot err";
+    if (String(e.message) === "401") return;
+    document.getElementById("live").textContent = "verbinding mislukt: " + e.message;
+  }
+}
+
+function render(data) {
+  const objs = data.objects || [];
+  const inbox = data.inbox || [];
+  document.getElementById("live").textContent =
+    objs.length + " objecten · " + inbox.length + " in legacy-inbox · live";
+
+  const pend = objs.filter(o => !o.memory_processed_at).length;
+  document.getElementById("stats").innerHTML =
+    stat(objs.length, "binnen (ingest)") + stat(pend, "wachten op brug") +
+    stat(objs.length - pend, "verwerkt → episode") + stat(inbox.length, "legacy-inbox");
+  document.getElementById("empty").style.display = objs.length + inbox.length ? "none" : "block";
+
+  let html = "";
+  for (const o of objs) {
+    html += '<tr onclick="openDetail(\'' + o.id + '\')" class="' + (selId === o.id ? "sel" : "") + '">' +
+      "<td>" + fmtTime(o.ingested_at) + "</td>" +
+      '<td><span class="badge b-' + esc(o.object_type) + '">' + esc(o.object_type) + "</span></td>" +
+      "<td>" + esc(o.source) + "</td>" +
+      "<td>" + esc(o.title || "(geen titel)") + "</td>" +
+      "<td>" + esc(o.status) + "</td>" +
+      '<td class="' + (o.memory_processed_at ? "ok" : "pend") + '">' + (o.memory_processed_at ? "✓ episode" : "⏳ wacht") + "</td></tr>";
+  }
+  for (const it of inbox) {
+    html += '<tr><td>' + fmtTime(it.queuedAt || it.timestamp || "") + "</td>" +
+      '<td><span class="badge b-inbox">inbox</span></td>' +
+      "<td>" + esc(it.sourceProvider || it.source || "?") + "</td>" +
+      "<td>" + esc(it.title || "(geen titel)") + "</td>" +
+      "<td>queued</td><td class='pend'>in wachtrij</td></tr>";
+  }
+  document.getElementById("rows").innerHTML = html;
+}
+
+function stat(n, label) { return '<div class="stat"><b>' + n + "</b><small>" + label + "</small></div>"; }
+
+async function openDetail(id) {
+  selId = id;
+  document.querySelectorAll("#rows tr").forEach((tr, i) => tr.classList.remove("sel"));
+  const d = document.getElementById("detail");
+  d.innerHTML = '<div class="empty">Laden…</div>';
+  try {
+    const data = await api("/api/ingest-logs/" + id);
+    const o = data.object, eps = data.episodes || [];
+    let h = "<h2>" + esc(o.title || "(geen titel)") + "</h2>";
+    h += '<div class="meta">' + esc(o.object_type) + " · via " + esc(o.source) + " · " + fmtTime(o.ingested_at) + "</div>";
+    h += kv("ID", o.id);
+    h += kv("Provider-conversatie", o.provider_conversation_id);
+    if (o.url) h += kv("URL", '<a href="' + esc(o.url) + '" target="_blank" style="color:#38bdf8">' + esc(o.url) + "</a>");
+    h += kv("Status", o.status);
+    h += kv("Content-hash", o.content_hash);
+    h += kv("Ingest-tijd", fmtTime(o.ingested_at));
+    h += kv("Gebeurd op", fmtTime(o.occurred_at));
+    h += kv("Brug verwerkt op", o.memory_processed_at ? "✓ " + fmtTime(o.memory_processed_at) : "⏳ nog niet — bridge pakt hem binnen ~60s");
+
+    h += '<div class="sec">Inhoud (' + o.content.length + " tekens)</div>";
+    h += "<pre>" + esc(o.content) + "</pre>";
+
+    if (o.turns && o.turns.length) {
+      h += '<div class="sec">Turns (' + o.turns.length + ")</div>";
+      for (const t of o.turns.slice(0, 50)) {
+        h += '<div class="turn"><div class="role">' + esc(t.role || "?") + "</div>" + esc(t.text || "") + "</div>";
+      }
+    }
+    if (o.attachments && o.attachments.length) {
+      h += '<div class="sec">Bijlagen (' + o.attachments.length + ")</div>";
+      for (const a of o.attachments) h += kv((a.filename || a.id || "bijlage"), (a.mimeType || "") + " · " + (a.size || "?") + " bytes");
+    }
+
+    h += '<div class="sec">Episodes (' + eps.length + ")</div>";
+    if (eps.length === 0) h += '<div class="kv">Nog geen episode — zodra de ingest-bridge deze rij verwerkt, verschijnt de bevroren observatie hier.</div>';
+    for (const ep of eps) {
+      h += "<pre>episode " + esc(ep.id) + "\nsource_type: " + esc(ep.source_type) + "\nbevroren op: " + fmtTime(ep.captured_at) + "\nobservation_hash: " + esc(ep.observation_hash) + "\n\n" + esc(ep.fragment) + "</pre>";
+    }
+    d.innerHTML = h;
+  } catch (e) {
+    d.innerHTML = '<div class="empty">Details laden mislukt: ' + esc(e.message) + "</div>";
+  }
+}
+
+function kv(k, v) { return '<div class="kv"><b>' + esc(k) + ":</b> " + (v instanceof String || typeof v === "string" ? v.replace(/</g, "&lt;") : esc(v)) + "</div>"; }
+
+if (!TOKEN) showGate(); else load();
+setInterval(load, 10000);
+</script>
+</body>
+</html>

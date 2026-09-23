@@ -190,14 +190,14 @@ async function loadStatus() {
     const cap = await api("/api/settings/resource-usage");
     document.getElementById("stCap").innerHTML =
       '<div class="bignum">' + (cap.memoryMB || "?") + " MB<small>geheugen</small></div>" +
-      '<div class="kv"><b>CPU:</b> ' + esc(cap.cpuPercent ?? "?") + "% · <b>Uptime:</b> ' + esc(fmtDur(cap.uptime)) + "</div>";
+      '<div class="kv"><b>CPU:</b> ' + esc(cap.cpuPercent ?? "?") + "% · <b>Uptime:</b> " + esc(fmtDur(cap.uptime)) + "</div>";
   } catch (e) { document.getElementById("stCap").innerHTML = '<div class="empty">niet beschikbaar</div>'; }
 
   try {
     const mem = await api("/api/memory/resource-usage");
     document.getElementById("stMem").innerHTML =
       '<div class="bignum">' + (mem.memoryMB || "?") + " MB<small>geheugen</small></div>" +
-      '<div class="kv"><b>CPU:</b> ' + esc(mem.cpuPercent ?? "?") + "% · <b>Uptime:</b> ' + esc(fmtDur(mem.uptime)) + "</div>";
+      '<div class="kv"><b>CPU:</b> ' + esc(mem.cpuPercent ?? "?") + "% · <b>Uptime:</b> " + esc(fmtDur(mem.uptime)) + "</div>";
   } catch (e) { document.getElementById("stMem").innerHTML = '<div class="empty">niet beschikbaar</div>'; }
 }
 

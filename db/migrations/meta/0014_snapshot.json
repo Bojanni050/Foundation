@@ -73,8 +73,7 @@
         "context_window": {
           "name": "context_window",
           "type": "text",
-     
-     "primaryKey": false,
+          "primaryKey": false,
           "notNull": false
         },
         "observation_hash": {
@@ -145,8 +144,7 @@
         },
         "richting": {
           "name": "richting",
-          "type": "evid
-ence_direction",
+          "type": "evidence_direction",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -220,8 +218,7 @@ ence_direction",
           ],
           "isUnique": true,
           "concurrently": false,
-          "method": "bt
-ree",
+          "method": "btree",
           "with": {}
         }
       },
@@ -297,8 +294,7 @@ ree",
         "status": {
           "name": "status",
           "type": "hypothesis_status",
- 
-         "typeSchema": "public",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'open'"
@@ -373,8 +369,7 @@ ree",
           "name": "gevoelig",
           "type": "boolean",
           "primaryKey": false,
-          "notNul
-l": true,
+          "notNull": true,
           "default": false
         },
         "zekerheid": {
@@ -449,8 +444,7 @@ l": true,
           "notNull": false
         },
         "created_at": {
-          "nam
-e": "created_at",
+          "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -522,8 +516,7 @@ e": "created_at",
             "id"
           ],
           "onDelete": "cascade",
-        
-  "onUpdate": "no action"
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -599,8 +592,7 @@ e": "created_at",
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public
-.object_chunk": {
+    "public.object_chunk": {
       "name": "object_chunk",
       "schema": "",
       "columns": {
@@ -679,7 +671,6 @@ e": "created_at",
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -757,8 +748,7 @@ e": "created_at",
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "items
-": {
+        "items": {
           "name": "items",
           "type": "text[]",
           "primaryKey": false,
@@ -848,8 +838,7 @@ e": "created_at",
       "name": "status_markering",
       "schema": "public",
       "values": [
-    
-    "observation",
+        "observation",
         "interpretation",
         "hypothesis",
         "confirmed",

@@ -73,8 +73,7 @@
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
-          "primaryKey": 
-false,
+          "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
@@ -150,8 +149,7 @@ false,
           "primaryKey": false,
           "notNull": false
         },
-    
-    "rejected_at": {
+        "rejected_at": {
           "name": "rejected_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
@@ -228,8 +226,7 @@ false,
         "status": {
           "name": "status",
           "type": "status_markering",
-  
-        "typeSchema": "public",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'observation'"
@@ -300,8 +297,7 @@ false,
         "laatst_versterkt_op": {
           "name": "laatst_versterkt_op",
           "type": "timestamp with time zone",
-          "primaryKey": false
-,
+          "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
@@ -377,8 +373,7 @@ false,
       "name": "knowledge_gap",
       "schema": "",
       "columns": {
-        "id": 
-{
+        "id": {
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
@@ -453,8 +448,7 @@ false,
           "default": "gen_random_uuid()"
         },
         "object_id": {
-          "name": "object_
-id",
+          "name": "object_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -533,8 +527,7 @@ id",
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNul
-l": true,
+          "notNull": true,
           "default": "gen_random_uuid()"
         },
         "confidence_threshold": {
@@ -612,8 +605,7 @@ l": true,
           "notNull": true,
           "default": false
         },
-        
-"generated_at": {
+        "generated_at": {
           "name": "generated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,

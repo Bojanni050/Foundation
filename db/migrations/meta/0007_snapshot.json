@@ -76,8 +76,7 @@
           "name": "embedding",
           "type": "vector(1024)",
           "primaryKey": false,
-       
-   "notNull": false
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -154,8 +153,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConst
-raints": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.persona_kenmerk": {
@@ -232,8 +230,7 @@ raints": {},
         },
         "valid_from": {
           "name": "valid_from",
-          "typ
-e": "timestamp with time zone",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -307,7 +304,6 @@ e": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
-
         }
       },
       "indexes": {},
@@ -390,8 +386,7 @@ e": "timestamp with time zone",
         "patroon"
       ]
     },
-    "pu
-blic.status_markering": {
+    "public.status_markering": {
       "name": "status_markering",
       "schema": "public",
       "values": [

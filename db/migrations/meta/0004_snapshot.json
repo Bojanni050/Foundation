@@ -74,8 +74,7 @@
           "name": "gevoelig",
           "type": "boolean",
           "primaryKey": false,
- 
-         "notNull": true,
+          "notNull": true,
           "default": false
         },
         "zekerheid": {
@@ -147,8 +146,7 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
-          "de
-fault": "now()"
+          "default": "now()"
         },
         "laatst_versterkt_op": {
           "name": "laatst_versterkt_op",
@@ -222,8 +220,7 @@ fault": "now()"
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-   
-   "checkConstraints": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     }
   },

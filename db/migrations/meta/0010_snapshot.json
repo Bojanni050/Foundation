@@ -75,8 +75,7 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "no
-tNull": true,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -155,8 +154,7 @@ tNull": true,
       "schema": "",
       "columns": {
         "id": {
-         
- "name": "id",
+          "name": "id",
           "type": "uuid",
           "primaryKey": true,
           "notNull": true,
@@ -231,8 +229,7 @@ tNull": true,
           "notNull": false
         },
         "voorganger_id": {
-          "name": "voor
-ganger_id",
+          "name": "voorganger_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -307,8 +304,7 @@ ganger_id",
           "primaryKey": false,
           "notNull": true
         },
-        "gebr
-uikt_op": {
+        "gebruikt_op": {
           "name": "gebruikt_op",
           "type": "timestamp with time zone",
           "primaryKey": false,
@@ -384,8 +380,7 @@ uikt_op": {
       "columns": {
         "id": {
           "name": "id",
-          "type
-": "uuid",
+          "type": "uuid",
           "primaryKey": true,
           "notNull": true,
           "default": "gen_random_uuid()"
@@ -462,8 +457,7 @@ uikt_op": {
   "enums": {
     "public.soort_kenmerk": {
       "name": "soort_kenmerk",
-    
-  "schema": "public",
+      "schema": "public",
       "values": [
         "feit",
         "patroon"

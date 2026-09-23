@@ -74,8 +74,7 @@
           "name": "gevoelig",
           "type": "boolean",
           "primaryKey": false,
- 
-         "notNull": true,
+          "notNull": true,
           "default": false
         },
         "zekerheid": {
@@ -147,8 +146,7 @@
           "name": "laatst_versterkt_op",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
-,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -226,8 +224,7 @@
       "schema": "public",
       "values": [
         "feit",
-   
-     "patroon"
+        "patroon"
       ]
     },
     "public.status_markering": {

@@ -75,8 +75,7 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "no
-tNull": true,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -155,8 +154,7 @@ tNull": true,
       "schema": "",
       "columns": {
         "id": {
-         
- "name": "id",
+          "name": "id",
           "type": "uuid",
           "primaryKey": true,
           "notNull": true,
@@ -231,8 +229,7 @@ tNull": true,
         },
         "valid_to": {
           "name": "valid_to",
-          "type": "times
-tamp with time zone",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },
@@ -305,8 +302,7 @@ tamp with time zone",
       "indexes": {},
       "foreignKeys": {
         "persona_kenmerk_gebruik_kenmerk_id_persona_kenmerk_id_fk": {
-          "name": "persona_kenmerk_gebruik_
-kenmerk_id_persona_kenmerk_id_fk",
+          "name": "persona_kenmerk_gebruik_kenmerk_id_persona_kenmerk_id_fk",
           "tableFrom": "persona_kenmerk_gebruik",
           "tableTo": "persona_kenmerk",
           "columnsFrom": [
@@ -393,8 +389,7 @@ kenmerk_id_persona_kenmerk_id_fk",
   "views": {},
   "_meta": {
     "columns": {},
- 
-   "schemas": {},
+    "schemas": {},
     "tables": {}
   }
 }

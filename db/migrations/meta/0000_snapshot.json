@@ -74,8 +74,7 @@
           "name": "gevoelig",
           "type": "boolean",
           "primaryKey": false,
- 
-         "notNull": true,
+          "notNull": true,
           "default": false
         },
         "zekerheid": {
@@ -149,8 +148,7 @@
         "context": {
           "name": "context",
           "type": "text",
-          "primaryKey": fal
-se,
+          "primaryKey": false,
           "notNull": true
         },
         "gebruikt_op": {

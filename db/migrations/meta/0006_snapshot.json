@@ -75,8 +75,7 @@
           "type": "uuid",
           "primaryKey": true,
           "notNull": true,
- 
-         "default": "gen_random_uuid()"
+          "default": "gen_random_uuid()"
         },
         "kenmerk": {
           "name": "kenmerk",
@@ -151,8 +150,7 @@
           "primaryKey": false,
           "notNull": false
         },
-        
-"temporal_text": {
+        "temporal_text": {
           "name": "temporal_text",
           "type": "text",
           "primaryKey": false,
@@ -223,8 +221,7 @@
         "persona_kenmerk_gebruik_kenmerk_id_persona_kenmerk_id_fk": {
           "name": "persona_kenmerk_gebruik_kenmerk_id_persona_kenmerk_id_fk",
           "tableFrom": "persona_kenmerk_gebruik",
-          "tab
-leTo": "persona_kenmerk",
+          "tableTo": "persona_kenmerk",
           "columnsFrom": [
             "kenmerk_id"
           ],

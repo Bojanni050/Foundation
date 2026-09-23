@@ -73,8 +73,7 @@
         "context_window": {
           "name": "context_window",
           "type": "text",
-     
-     "primaryKey": false,
+          "primaryKey": false,
           "notNull": false
         },
         "observation_hash": {
@@ -145,8 +144,7 @@
         },
         "richting": {
           "name": "richting",
-          "type": "evide
-nce_direction",
+          "type": "evidence_direction",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -221,8 +219,7 @@ nce_direction",
       "schema": "",
       "columns": {
         "id": {
-          "name": "
-id",
+          "name": "id",
           "type": "uuid",
           "primaryKey": true,
           "notNull": true,
@@ -300,8 +297,7 @@ id",
         "hypothese": {
           "name": "hypothese",
           "type": "text",
-          
-"primaryKey": false,
+          "primaryKey": false,
           "notNull": true
         },
         "verificatie_criteria": {
@@ -375,8 +371,7 @@ id",
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "categorie"
-: {
+        "categorie": {
           "name": "categorie",
           "type": "categorie",
           "typeSchema": "public",
@@ -452,8 +447,7 @@ id",
           "notNull": false
         },
         "voorganger_id": {
-    
-      "name": "voorganger_id",
+          "name": "voorganger_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
@@ -527,8 +521,7 @@ id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
-     
-   },
+        },
         "gebruikt_op": {
           "name": "gebruikt_op",
           "type": "timestamp with time zone",
@@ -601,8 +594,7 @@ id",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
-     
-     "default": "now()"
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -680,8 +672,7 @@ id",
     },
     "public.object_embedding": {
       "name": "object_embedding",
-  
-    "schema": "",
+      "schema": "",
       "columns": {
         "object_id": {
           "name": "object_id",
@@ -758,8 +749,7 @@ id",
           "default": 3
         },
         "updated_at": {
-          "name": "updat
-ed_at",
+          "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -844,8 +834,7 @@ ed_at",
         "contextualizing"
       ]
     },
-    "public
-.hypothesis_status": {
+    "public.hypothesis_status": {
       "name": "hypothesis_status",
       "schema": "public",
       "values": [

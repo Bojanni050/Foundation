@@ -73,8 +73,7 @@
         "context_window": {
           "name": "context_window",
           "type": "text",
-     
-     "primaryKey": false,
+          "primaryKey": false,
           "notNull": false
         },
         "observation_hash": {
@@ -145,8 +144,7 @@
         },
         "richting": {
           "name": "richting",
-          "type": "evide
-nce_direction",
+          "type": "evidence_direction",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -221,8 +219,7 @@ nce_direction",
       "schema": "",
       "columns": {
         "id": {
-          "name": "
-id",
+          "name": "id",
           "type": "uuid",
           "primaryKey": true,
           "notNull": true,
@@ -295,8 +292,7 @@ id",
               "expression": "supersedes_fact_id",
               "isExpression": false,
               "asc": true,
-              "
-nulls": "last"
+              "nulls": "last"
             }
           ],
           "isUnique": true,
@@ -372,8 +368,7 @@ nulls": "last"
           "name": "afwijzings_criteria",
           "type": "text",
           "primaryKey": false,
-        
-  "notNull": false
+          "notNull": false
         },
         "status": {
           "name": "status",
@@ -445,8 +440,7 @@ nulls": "last"
           "columnsTo": [
             "id"
           ],
-          "onDelete":
- "restrict",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
@@ -524,7 +518,6 @@ nulls": "last"
           "notNull": false
         },
         "vervangen_door": {
-
           "name": "vervangen_door",
           "type": "uuid",
           "primaryKey": false,
@@ -598,8 +591,7 @@ nulls": "last"
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": tr
-ue,
+          "notNull": true,
           "default": "gen_random_uuid()"
         },
         "kenmerk_id": {
@@ -673,8 +665,7 @@ ue,
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'
-unknown'"
+          "default": "'unknown'"
         },
         "hypothesis_id": {
           "name": "hypothesis_id",
@@ -750,8 +741,7 @@ unknown'"
         "embedding": {
           "name": "embedding",
           "type": "vector(1024)",
-          "primaryKey": fals
-e,
+          "primaryKey": false,
           "notNull": false
         },
         "created_at": {
@@ -829,8 +819,7 @@ e,
         },
         "skepticism": {
           "name": "skepticism",
- 
-         "type": "integer",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 3
@@ -910,8 +899,7 @@ e,
     "public.categorie": {
       "name": "categorie",
       "schema": "public",
-      "values": 
-[
+      "values": [
         "persona",
         "skill",
         "algemeen"

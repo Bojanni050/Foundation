@@ -73,8 +73,7 @@
         },
         "vervangen_door": {
           "name": "vervangen_door",
-          "type": "uu
-id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -149,8 +148,7 @@ id",
           "notNull": true,
           "default": "gen_random_uuid()"
         },
- 
-       "kenmerk_id": {
+        "kenmerk_id": {
           "name": "kenmerk_id",
           "type": "uuid",
           "primaryKey": false,
@@ -225,8 +223,7 @@ id",
           "name": "order_index",
           "type": "integer",
           "primaryKey": false,
-  
-        "notNull": true
+          "notNull": true
         },
         "embedding": {
           "name": "embedding",
@@ -302,8 +299,7 @@ id",
         },
         "promotie_min_bronnen": {
           "name": "promotie_min_bronnen",
-          "type": "integer"
-,
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 2
@@ -382,8 +378,7 @@ id",
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": 
-{},
+      "checkConstraints": {},
       "isRLSEnabled": false
     }
   },

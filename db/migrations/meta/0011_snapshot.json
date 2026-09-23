@@ -74,8 +74,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-     
-     "default": "'persona'"
+          "default": "'persona'"
         },
         "kenmerk": {
           "name": "kenmerk",
@@ -151,8 +150,7 @@
           "notNull": false
         },
         "valid_from": {
-          "na
-me": "valid_from",
+          "name": "valid_from",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
@@ -225,8 +223,7 @@ me": "valid_from",
           "name": "gebruikt_op",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": t
-rue,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -303,8 +300,7 @@ rue,
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.object_embed
-ding": {
+    "public.object_embedding": {
       "name": "object_embedding",
       "schema": "",
       "columns": {
@@ -382,8 +378,7 @@ ding": {
           "notNull": true,
           "default": 3
         },
-   
-     "updated_at": {
+        "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
@@ -461,8 +456,7 @@ ding": {
           "type": "status_markering",
           "typeSchema": "public",
           "primaryKey": false,
-          "notN
-ull": true,
+          "notNull": true,
           "default": "'observation'"
         },
         "bron_object_ids": {
@@ -546,8 +540,7 @@ ull": true,
         "patroon"
       ]
     },
-    "p
-ublic.status_markering": {
+    "public.status_markering": {
       "name": "status_markering",
       "schema": "public",
       "values": [

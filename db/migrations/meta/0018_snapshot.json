@@ -73,8 +73,7 @@
         "context_window": {
           "name": "context_window",
           "type": "text",
-     
-     "primaryKey": false,
+          "primaryKey": false,
           "notNull": false
         },
         "observation_hash": {
@@ -145,8 +144,7 @@
         },
         "richting": {
           "name": "richting",
-          "type": "evide
-nce_direction",
+          "type": "evidence_direction",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -221,8 +219,7 @@ nce_direction",
       "schema": "",
       "columns": {
         "id": {
-          "name": "
-id",
+          "name": "id",
           "type": "uuid",
           "primaryKey": true,
           "notNull": true,
@@ -295,8 +292,7 @@ id",
               "expression": "supersedes_fact_id",
               "isExpression": false,
               "asc": true,
-              "
-nulls": "last"
+              "nulls": "last"
             }
           ],
           "isUnique": true,
@@ -372,8 +368,7 @@ nulls": "last"
           "name": "afwijzings_criteria",
           "type": "text",
           "primaryKey": false,
-        
-  "notNull": false
+          "notNull": false
         },
         "status": {
           "name": "status",
@@ -444,8 +439,7 @@ nulls": "last"
         "hypothesis_supersedes_fact_id_fact_id_fk": {
           "name": "hypothesis_supersedes_fact_id_fact_id_fk",
           "tableFrom": "hypothesis",
-          "tableTo": 
-"fact",
+          "tableTo": "fact",
           "columnsFrom": [
             "supersedes_fact_id"
           ],
@@ -524,8 +518,7 @@ nulls": "last"
           "default": "'{}'"
         },
         "embedding": {
-     
-     "name": "embedding",
+          "name": "embedding",
           "type": "vector(1024)",
           "primaryKey": false,
           "notNull": false
@@ -598,8 +591,7 @@ nulls": "last"
     },
     "public.persona_kenmerk_gebruik": {
       "name": "persona_kenmerk_gebruik",
- 
-     "schema": "",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",
@@ -675,7 +667,6 @@ nulls": "last"
         },
         "status": {
           "name": "status",
-
           "type": "knowledge_gap_status",
           "typeSchema": "public",
           "primaryKey": false,
@@ -750,8 +741,7 @@ nulls": "last"
         "order_index": {
           "name": "order_index",
           "type": "integer",
-          "primaryKey": fal
-se,
+          "primaryKey": false,
           "notNull": true
         },
         "embedding": {
@@ -828,8 +818,7 @@ se,
         },
         "promotie_min_bronnen": {
           "name": "promotie_min_bronnen",
-          "type": "in
-teger",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "default": 2
@@ -908,8 +897,7 @@ teger",
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstrai
-nts": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     }
   },

@@ -94,3 +94,12 @@ docker compose -f db/docker-compose.yml exec chronicle-db \
   "SELECT bron_object_id, left(fragment, 40) FROM episode ORDER BY captured_at DESC LIMIT 1"
 # verwacht: bron_object_id = ingest:<uuid>
 ```
+
+## 6. Een deploy verifiëren
+
+- GitHub → Actions-tab: run "Deploy to VPS" groen, met "API reageert —
+  deploy OK" in de laatste stap.
+- Op de VPS: `pm2 ls` toont `chronicle` online, en
+  `git log -1 --oneline` toont dezelfde commit als GitHub-main.
+- In de UI (`/ui`): Instellingen → Systeem toont database en embeddings
+  online.

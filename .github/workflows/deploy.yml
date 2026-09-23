@@ -1,0 +1,54 @@
+# Auto-deploy naar de VPS bij elke push naar main.
+#
+# Vereiste repo-secrets (Settings → Secrets and variables → Actions):
+#   SSH_HOST        — hostname/IP van de VPS
+#   SSH_USER        — deploy-gebruiker (bijv. root of een aparte deploy-user)
+#   SSH_PRIVATE_KEY — private key die bij een authorized_key op de VPS hoort
+#
+# De deploy is bewust simpel en veilig: pull → deps → migraties → pm2 restart.
+# Hij draait NIET op pull-requests, alleen op main.
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}   # handmatig triggerbaar via de Actions-tab
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false   # deploys queueën zich, niet annuleren
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true   # stop bij de eerste fout — geen half gedeployde staat
+          script: |
+            set -e
+            cd /opt/Foundation
+
+            echo "==> Git pull"
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "==> Dependencies (server)"
+            cd server && npm install --no-audit --no-fund && cd ..
+
+            echo "==> Migraties (drizzle-kit)"
+            cd db && npm install --no-audit --no-fund && npx drizzle-kit migrate && cd ..
+
+            echo "==> Herstart processen"
+            pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+            pm2 save
+
+            echo "==> Smoke-check"
+            sleep 3
+            curl -sf http://127.0.0.1:4577/api/settings/status -H "Authorization: Bearer $(cat server/data/token.txt)" > /dev/null \
+              && echo "API reageert — deploy OK" \
+              || (echo "API reageert NIET"; pm2 logs chronicle --lines 30 --nostream; exit 1)

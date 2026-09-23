@@ -4,6 +4,29 @@ Chronicle draait op een VPS in drie lagen: de Postgres-container (docker
 compose, host-poort 5434), het capture-proces (server/index.js, poort 4577)
 en het memory-proces (poort 4578, door server/index.js zelf gespawnd).
 
+## 0. Auto-deploy (aanbevolen)
+
+Bij elke push naar `main` rolt GitHub Actions de VPS automatisch bij
+(`.github/workflows/deploy.yml`): pull → deps → migraties → pm2 restart,
+plus een smoke-check dat de API daarna antwoordt. Bij één keer instellen:
+
+**Op de VPS — een deploy-key maken:**
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/chronicle_deploy -N "" -C "github-actions"
+cat ~/.ssh/chronicle_deploy.pub >> ~/.ssh/authorized_keys
+cat ~/.ssh/chronicle_deploy    # ← deze private key, straks als secret
+```
+
+**In GitHub — repo → Settings → Secrets and variables → Actions:**
+| Secret | Waarde |
+|---|---|
+| `SSH_HOST` | hostname/IP van de VPS |
+| `SSH_USER` | bijv. `root` |
+| `SSH_PRIVATE_KEY` | inhoud van `chronicle_deploy` (private key, inclusief BEGIN/END-regels) |
+
+Daarna deployt elke merge naar `main` vanzelf (zie de Actions-tab), en kan
+de workflow ook handmatig via "Run workflow".
+
 ## 1. Checkout + setup
 
 ```bash

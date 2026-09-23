@@ -1,1 +1,69 @@
-)
+# Auto-deploy naar de VPS bij elke push naar main.
+#
+# Vereiste repo-secrets (Settings -> Secrets and variables -> Actions):
+#   TS_OAUTH_CLIENT_ID  - Tailscale OAuth Client ID
+#   TS_OAUTH_SECRET     - Tailscale OAuth Client secret
+#   SSH_HOST            - Tailscale-hostname of 100.x-IP van de VPS
+#   SSH_USER            - deploy-gebruiker op de VPS
+#   SSH_PRIVATE_KEY     - private key die bij een authorized_key op de VPS hoort
+#
+# OAuth client aanmaken: admin console -> Trust credentials -> Credential -> OAuth
+# (scopes: Auth keys read+write) -> Generate credential. ID + secret direct koperen.
+# De runner joint als ephemeral Tailscale-node (tag:ci) en SSHt over het
+# tailnet; poort 22 blijft gesloten voor het publieke internet.
+# De deploy is bewust simpel en veilig: pull -> deps -> migraties -> pm2 restart.
+# Hij draait NIET op pull-requests, alleen op main.
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}   # handmatig triggerbaar via de Actions-tab
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false   # deploys queueen zich, niet annuleren
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Join tailnet als ephemeral CI-node
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          # wacht tot de VPS bereikbaar is over het tailnet (max 3 min)
+          ping: ${{ secrets.SSH_HOST }}
+
+      - name: Deploy via SSH (over Tailscale)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}     # 100.x.x.x of tailscale-hostname
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true   # stop bij de eerste fout — geen half gedeployde staat
+          script: |
+            set -e
+            cd /opt/Foundation
+
+            echo "==> Git pull"
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "==> Dependencies (server)"
+            cd server && npm install --no-audit --no-fund && cd ..
+
+            echo "==> Migraties (drizzle-kit)"
+            cd db && npm install --no-audit --no-fund && npx drizzle-kit migrate && cd ..
+
+            echo "==> Herstart processen"
+            pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+            pm2 save
+
+            echo "==> Smoke-check"
+            sleep 3
+            curl -sf http://127.0.0.1:4577/api/settings/status -H "Authorization: Bearer $(cat server/data/token.txt)" > /dev/null \
+              && echo "API reageert — deploy OK" \
+              || (echo "API reageert NIET"; pm2 logs chronicle --lines 30 --nostream; exit 1)

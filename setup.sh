@@ -14,6 +14,9 @@ until docker compose exec -T chronicle-db pg_isready -U chronicle -d chronicle -
   sleep 1
 done
 
+echo "==> db-dependencies installeren (drizzle-kit, dotenv, pg)"
+npm install
+
 echo "==> Migraties toepassen (drizzle-kit migrate)"
 npx drizzle-kit migrate
 
@@ -23,6 +26,9 @@ npm install
 
 echo "==> Ingest-policy-tests draaien"
 node ingestPolicy.test.js
+
+echo "==> Ingest-bridge-tests draaien"
+node ingestBridge.test.js
 
 echo ""
 echo "Setup compleet. Start de server met: cd server && npm start"

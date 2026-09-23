@@ -12,11 +12,13 @@ if errorlevel 1 (
   goto wait
 )
 
+call npm install
 npx drizzle-kit migrate
 
 cd ..\server
 call npm install
 node ingestPolicy.test.js
+node ingestBridge.test.js
 
 echo.
 echo Setup compleet. Start de server met: cd server ^&^& npm start

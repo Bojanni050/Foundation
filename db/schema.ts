@@ -9,6 +9,7 @@ import {
   pgTable,
   text,
   timestamp,
+  index,
   uniqueIndex,
   uuid,
   vector,
@@ -425,7 +426,17 @@ export const ingestObject = pgTable("ingest_object", {
   status: statusMarkeringEnum("status").notNull().default("observation"),
   ingestedAt: timestamp("ingested_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  // Gezet door de ingest-bridge (server/ingestBridge.js, draait in het
+  // memory-proces) zodra deze rij succesvol als episode is bevroren.
+  // NULL = nog niet verwerkt. De ingest-upsert (routes/ingest.js) reset de
+  // kolom naar NULL zodra dezelfde conversatie gegroeid opnieuw binnenkomt,
+  // zodat de herlevering opnieuw een episode oplevert.
+  memoryProcessedAt: timestamp("memory_processed_at", { withTimezone: true }),
 }, (table) => [
   uniqueIndex("ingest_object_provider_conversation_id_unique").on(table.providerConversationId),
+  // Partial index voor de bridge-poll: alleen de nog onverwerkte rijen.
+  index("ingest_object_pending_memory_idx")
+    .on(table.ingestedAt)
+    .where(sql`memory_processed_at IS NULL`),
 ]);
 

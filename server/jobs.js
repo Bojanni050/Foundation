@@ -1,6 +1,7 @@
 const { pool } = require("./db");
 const { embed } = require("./embedding");
 const { getOrCreateInstelling } = require("./personaHelper");
+const { runIngestBridge } = require("./ingestBridge");
 
 async function runAutoHealEmbeddings() {
   console.log("[Auto-Heal] Running background auto-heal loop for missing embeddings...");
@@ -128,6 +129,11 @@ function startBackgroundJobs() {
   setTimeout(runAutoHealEmbeddings, 10000);  // 10 seconds after startup
   setTimeout(consolidateKenmerken, 12000);   // 12 seconds after startup
 
+  // Ingest-bridge: vries nieuwe ingest_object-rijen als episode. Draait hier
+  // (memory-proces), niet in het capture-proces — zie server/ingestBridge.js.
+  setInterval(runIngestBridge, 60000);      // 1 minute
+  setTimeout(runIngestBridge, 15000);       // 15 seconds after startup
+
   // Screenpipe is gated behind its own subscription now and unusable.
   // PureMemory's external Go collector-agent has been replaced by native
   // Windows UI Automation capture embedded directly in the Tauri app (see
@@ -139,5 +145,6 @@ function startBackgroundJobs() {
 module.exports = {
   runAutoHealEmbeddings,
   consolidateKenmerken,
+  runIngestBridge,
   startBackgroundJobs
 };

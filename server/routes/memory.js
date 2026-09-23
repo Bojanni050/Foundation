@@ -718,4 +718,8 @@ router.patch("/knowledge-gaps/:id/status", async (req, res) => {
   res.json(updated[0]);
 });
 
+// Gedeeld met server/ingestBridge.js (de ingest_object → episode-brug), zodat
+// de brug exact hetzelfde idempotente insert-pad gebruikt als de HTTP-route.
+router.createOrReuseEpisode = createOrReuseEpisode;
+
 module.exports = router;

@@ -50,7 +50,8 @@ jobs:
 
             echo "==> Git pull"
             git fetch origin
-            git reset --hard origin/main
+ 
+           git reset --hard origin/main
 
             echo "==> Dependencies (server)"
             cd server && npm install --no-audit --no-fund && cd ..

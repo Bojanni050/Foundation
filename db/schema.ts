@@ -440,3 +440,15 @@ export const ingestObject = pgTable("ingest_object", {
     .where(sql`memory_processed_at IS NULL`),
 ]);
 
+// Consolidation watermark (Stash-geïnspireerd checkpoint-patroon, migratie
+// 0021): één singleton-rij (vast sentinel-UUID) met het tijdstip van de
+// laatste voltooide consolidateKenmerken-run, zodat de consolidator alleen
+// kenmerken outer-scant die sindsdien zijn aangemaakt. Elk gescand kenmerk
+// wordt nog wél vergeleken met ALLE niet-rejected kenmerken, dus
+// merge-coverage verandert niet — alleen de scan zelf wordt incrementeel.
+export const consolidationProgress = pgTable("consolidation_progress", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  lastRun: timestamp("last_run", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+

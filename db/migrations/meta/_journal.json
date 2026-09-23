@@ -148,6 +148,13 @@
       "when": 1790246400000,
       "tag": "0020_add_memory_processed_at",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790332800000,
+      "tag": "0021_add_consolidation_checkpoint",
+      "breakpoints": true
     }
   ]
 }

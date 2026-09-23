@@ -1,3 +1,6 @@
+// Root-.env eerst (één configuratieplek voor de hele stack), daarna een
+// eventuele server/.env als override.
+require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
 require("dotenv").config();
 
 // Global safety net: a crash anywhere in an async/background path must never
@@ -39,7 +42,11 @@ const ingestRouter = require("./routes/ingest");
 const MEMORY_HOST = "127.0.0.1";
 const MEMORY_PORT = process.env.MEMORY_PORT || 4578;
 
-const HOST = "127.0.0.1"; // localhost-only — never 0.0.0.0
+// Loopback by default. CHRONICLE_HOST kan de binding verplaatsen naar één
+// specifieke privé-interface (bijv. het Tailscale-IP, zodat de UI/API binnen
+// het tailnet bereikbaar is) — maar nooit 0.0.0.0: alleen benoemde
+// interfaces, anders hangt alles aan het open internet.
+const HOST = process.env.CHRONICLE_HOST || "127.0.0.1";
 const PORT = process.env.CHRONICLE_PORT || 4577;
 
 const allowedOriginsPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^chrome-extension:\/\//;

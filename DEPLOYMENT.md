@@ -103,3 +103,19 @@ docker compose -f db/docker-compose.yml exec chronicle-db \
   `git log -1 --oneline` toont dezelfde commit als GitHub-main.
 - In de UI (`/ui`): Instellingen → Systeem toont database en embeddings
   online.
+
+## 7. Toegang via Tailscale (optioneel)
+
+Standaard luistert de capture-server alleen op loopback. Wil je de UI en
+API vanuit je tailnet gebruiken (bijv. `http://100.65.0.15:4577/ui`), zet
+dan in `.env` op de repo-root:
+
+```bash
+echo "CHRONICLE_HOST=100.65.0.15" >> /opt/Foundation/.env
+pm2 restart chronicle
+```
+
+De server bindt dan alléén op dat interface — het publieke internet komt
+er nog steeds niet op (Tailscale is WireGuard-versleuteld en alleen jouw
+masken komt erop), en de bearer-token blijft vereist. `0.0.0.0` is en
+blijft verboden; het memory-proces (4578) blijft altijd loopback.

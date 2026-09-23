@@ -22,6 +22,7 @@ const { readInbox, writeInbox, pushToInbox } = require("./inboxStore");
 const settingsRouter = require("./routes/settings");
 const chatgptImportRouter = require("./routes/chatgptImport");
 const attachmentsRouter = require("./routes/attachments");
+const ingestRouter = require("./routes/ingest");
 // Object embedding (POST /api/objects/:objectId/embed) is proxied to the
 // memory-process below, not handled here — it used to be required and
 // mounted directly in this process (`./routes/embedding`), which loaded a
@@ -152,6 +153,12 @@ app.post("/api/objects/:objectId/embed", proxyToMemory);
 app.use("/api/settings", settingsRouter);
 app.use("/api/settings/chatgpt-import", chatgptImportRouter);
 app.use("/api/attachments", attachmentsRouter);
+
+// Ingestie Gateway — server-side ingest met statusmarkering `observation` bij
+// binnenkomst (typeward entry-points, zie routes/ingest.js). Onafhankelijk
+// van de inbox/objects-import-route hierboven: dit is de officiële pijp voor
+// alle externe capture-bronnen.
+app.use("/api/ingest", ingestRouter);
 
 // Extension (and other capture sources, e.g. uiaCapture.js) → queue an object
 app.post("/api/objects/import", requireAuth, (req, res) => {

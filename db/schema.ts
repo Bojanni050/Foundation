@@ -4,6 +4,7 @@ import {
   boolean,
   check,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -375,4 +376,56 @@ export const knowledgeGap = pgTable("knowledge_gap", {
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// --------------------------------------------------------------------------
+// Ingestie Gateway — de enige officiële instroom van buitenwerelddata in
+// Foundation. Elke capture-bron (Capture RS, Diary, chat-imports, documenten)
+// levert hier zijn objecten af; typeward entry-points (zie server/
+// ingestPolicy.js) bepalen per bron welke velden vereist, toegestaan of
+// geweigerd zijn — de Lumina-les: de herkomst van een object dwingt de
+// codestructuur af, niet andersom.
+//
+// Statusmarkering: alles wat hier binnenkomt is per definitie `observation`
+// ("dit is geregistreerd/gebeurd") — de client kan NOOIT een status meesturen;
+// vertrouwen komt later, uitsluitend via menselijke validatie (Absolute
+// Override). Het ruisfilter zit bewust NIET hier maar aan de capture-kant;
+// Foundation registreert wat het bereikt, ongefilterd door tweede partijen.
+//
+// provider_conversation_id (afgeleid via providerConversationId.js, niet
+// client-aanbiedbaar) maakt cross-kanaal idempotentie mogelijk: dezelfde
+// conversatie die via de extension én via de bulk-import binnenkomt, of een
+// import die opnieuw draait nadat de conversatie groeide, resolveert naar
+// dezelfde rij (ON CONFLICT DO UPDATE) in plaats van een duplicaat. Geen FK
+// op een bron-object-id: objecten leven (nog) in IndexedDB bij de clients.
+// --------------------------------------------------------------------------
+
+export const ingestObject = pgTable("ingest_object", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  // "chat" | "capture" | "document" | "diary" — vastgezet door de route,
+  // nooit client-aanbiedbaar.
+  objectType: text("object_type").notNull(),
+  // Vrije aanduiding van de afzender (bijv. "capture-rs", "diary-android",
+  // "chatgpt-bulk-import") — voor diagnostiek en provenance, niet voor
+  // epistemische beslissingen.
+  source: text("source").notNull(),
+  title: text("title"),
+  content: text("content").notNull(),
+  sourceProvider: text("source_provider"),
+  url: text("url"),
+  tags: text("tags").array().notNull().default([]),
+  // Structured role/text turns (chats) of transcriptsegmenten (diary) —
+  // server-side gecast naar jsonb; vorm wordt gevalideerd in ingestPolicy.
+  turns: jsonb("turns"),
+  // Alleen metadata ({id, filename, mimeType, size, url} per item) — de bytes
+  // zelf leven in de attachments-opslag, niet hier.
+  attachments: jsonb("attachments"),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }),
+  contentHash: text("content_hash").notNull(),
+  providerConversationId: text("provider_conversation_id"),
+  status: statusMarkeringEnum("status").notNull().default("observation"),
+  ingestedAt: timestamp("ingested_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("ingest_object_provider_conversation_id_unique").on(table.providerConversationId),
+]);
 

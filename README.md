@@ -7,7 +7,7 @@ inplugbaar.
 
 ```
 Capture RS (repo: capture-rs) · Diary-opnames · chatgpt-imports · ...
-                        ↓ Ingestie Gateway (nog te bouwen: server-side ingest-route)
+                        ↓ Ingestie Gateway (/api/ingest/*, status = observation)
              FOUNDATION  (opslag + epistemiek + API)
                         ↑ één API (mcpServer.js)
 Clients:  Chronicle (notes/zoek/validatie-UI) · Gaia (geest, via Insight/Logos)
@@ -35,9 +35,36 @@ Foundation-Chronicle blijft ongewijzigd als archief liggen.
 
 **Bruggetje (tijdelijk):** het oude inbox/memory-process-patroon
 (inboxStore, captureActivityLog, /api/inbox, memory-process sidecar) blijft
-aangezet omdat het geweven zit in de import-flow. Het wordt vervangen zodra
-de échte server-side ingest-route er is (bouwstap: Ingestie Gateway, met
-statusmarkering observation bij binnenkomst).
+aangezet omdat het geweven zit in de import-flow. De Ingestie Gateway is nu
+gebouwd (zie hieronder); zodra de import-flow en clients op /api/ingest/*
+zitten, verdwijnt het bruggetje.
+
+## Ingestie Gateway (25 sep 2026)
+
+Server-side ingest-route — de officiële pijp voor alle externe bronnen.
+Typeward entry-points (Lumina-les): per bron een eigen endpoint met een
+exact veldcontract (vereist/toegestaan/geweigerd), gevalideerd in de pure
+module `server/ingestPolicy.js` (+ test):
+
+- `POST /api/ingest/chat` — AI-chats (turns toegestaan)
+- `POST /api/ingest/capture` — desktop-capture (geen turns; source vereist)
+- `POST /api/ingest/document` — expliciet gedeelde documenten (source vereist)
+- `POST /api/ingest/diary` — audio/video-log (transcript-turns toegestaan)
+- `GET /api/ingest/recent` — diagnostiek (laatste 50)
+
+Regels die in code worden afgedwongen, niet in prompts:
+
+1. **status is server-owned**: alles komt binnen als `observation`; een
+   client die een status meestuurt krijgt 422 (Absolute Override — vertrouwen
+   komt uitsluitend via menselijke validatie).
+2. **providerConversationId/contentHash worden server-side afgeleid** —
+   dedup-identiteit kan niet gevorkt worden. Dezelfde conversatie die opnieuw
+   of via een tweede kanaal binnenkomt updatet dezelfde rij (ON CONFLICT DO
+   UPDATE) in plaats van te dupliceren.
+3. **Onbekende velden = 422** (exact contract, geen stille drop).
+
+Opslag: tabel `ingest_object` (Drizzle-migratie 0019). Geen ruisfilter hier —
+dat zit aan de capture-kant; Foundation registreert wat de pijp bereikt.
 
 ## Databases-beleid
 

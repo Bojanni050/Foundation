@@ -146,6 +146,13 @@ app.use(express.json({ limit: "10mb" }));
 // get first crack at matching; settingsRouter's own paths (token, status,
 // embedding-model, seed) don't overlap with them and fall through untouched.
 app.use("/api/settings/capture-activity", proxyToMemory);
+// Ingestie/capture-logdashboard: data-endpoint (routes/ingestLogs.js) en
+// de statische pagina (public/index.html, op /ui). De pagina vraagt bij
+// eerste gebruik om de bearer-token en bewaart die in localStorage —
+// dezelfde authenticatie als elke andere caller, geen losse deur.
+app.use("/api/ingest-logs", require("./routes/ingestLogs"));
+app.use("/ui", express.static(path.join(__dirname, "public")));
+
 app.use("/api/persona", proxyToMemory);
 app.use("/api/memory", proxyToMemory);
 app.post("/api/objects/:objectId/embed", proxyToMemory);

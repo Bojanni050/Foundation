@@ -46,8 +46,7 @@ try {
   const episodeId = episodeRows[0].id;
 
   await client.query(
-    "INSERT INTO evidence (hypothe
-sis_id, episode_id, richting) VALUES ($1, $2, 'supporting')",
+    "INSERT INTO evidence (hypothesis_id, episode_id, richting) VALUES ($1, $2, 'supporting')",
     [firstHypothesisId, episodeId],
   );
   await client.query(
@@ -97,8 +96,7 @@ sis_id, episode_id, richting) VALUES ($1, $2, 'supporting')",
     memoryExport.tables.knowledge.every((row) => !("embedding" in row)),
     "portable memory export must not include derived embedding vectors",
   );
-  const restoreResult = await restoreMemor
-yWithClient(client, memoryExport);
+  const restoreResult = await restoreMemoryWithClient(client, memoryExport);
   assert.ok(restoreResult.episodeReused >= 2, "restore must reuse immutable episodes by hash");
   assert.equal(restoreResult.counts.evidence, memoryExport.tables.evidence.length);
 
@@ -139,8 +137,7 @@ yWithClient(client, memoryExport);
     );
     assert.fail("duplicate hypothesis/episode link should fail");
   } catch (error) {
-    assert.equa
-l(error.code, "23505");
+    assert.equal(error.code, "23505");
     await client.query("ROLLBACK TO SAVEPOINT duplicate_evidence");
   }
 

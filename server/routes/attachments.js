@@ -54,8 +54,7 @@ router.post(
         filename,
         req.get("X-Attachment-Mime-Type") || "application/octet-stream",
       );
-      attachmentRestoreSessions.record(req.pa
-rams.sessionId, meta.id, !meta.reused);
+      attachmentRestoreSessions.record(req.params.sessionId, meta.id, !meta.reused);
       return res.status(meta.reused ? 200 : 201).json({
         id: meta.id,
         filename: meta.filename,
@@ -101,8 +100,7 @@ router.post("/restore-sessions/:sessionId/rollback", requireAuth, (req, res) => 
 // (URL-encoded), mime type via Content-Type. Requires the same bearer token
 // as /api/objects/import — both are write paths for external tools (browser
 // extension, bulk importer), not just the app's own UI.
-router.post("/", requireAuth, express.raw({ type: "*/*", limit: "25mb" }), (req, res) 
-=> {
+router.post("/", requireAuth, express.raw({ type: "*/*", limit: "25mb" }), (req, res) => {
   if (!Buffer.isBuffer(req.body) || !req.body.length) {
     return res.status(400).json({ error: "empty body" });
   }
@@ -162,8 +160,7 @@ router.post("/restore/:id", requireAuth, express.raw({ type: "*/*", limit: "25mb
   }
 });
 
-//
- POST /api/attachments/inventory — the browser supplies the attachment ids
+// POST /api/attachments/inventory — the browser supplies the attachment ids
 // referenced by its IndexedDB objects; the server compares those with disk.
 router.post("/inventory", requireAuth, (req, res) => {
   const referencedIds = Array.isArray(req.body?.referencedIds) ? req.body.referencedIds : [];
@@ -200,8 +197,7 @@ router.get("/:id/:filename", (req, res) => {
   const attachment = getAttachment(req.params.id);
   if (!attachment) return res.status(404).json({ error: "not found" });
   res.setHeader("Content-Type", attachment.mimeType);
-  res.setHeader("Cache-Control", "public, max-age=3
-1536000, immutable"); // content-addressed — safe to cache hard
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable"); // content-addressed — safe to cache hard
   res.sendFile(attachment.filePath);
 });
 

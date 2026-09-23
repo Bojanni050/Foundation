@@ -41,8 +41,7 @@ async function main() {
     } else {
       const parsed = JSON.parse(text);
       assert.ok(Array.isArray(parsed.results), "search_memory must return a results array");
-      console.log(`ok - search_memory returned a rea
-l response with ${parsed.results.length} result(s)`);
+      console.log(`ok - search_memory returned a real response with ${parsed.results.length} result(s)`);
     }
 
     console.log("\nAll checks passed.");

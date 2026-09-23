@@ -45,8 +45,7 @@ export const soortKenmerkEnum = pgEnum("soort_kenmerk", ["feit", "patroon"]);
 // categories of the same underlying concept (a piece of extracted knowledge,
 // evidenced by objects, moving through the same observation→hypothesis→
 // confirmed→rejected ladder). "persona" = a claim about the owner. "skill" =
-// a reusable procedure/workflow pi
-cked up on. "algemeen" = a fact or
+// a reusable procedure/workflow picked up on. "algemeen" = a fact or
 // concept from content that isn't about the owner at all. Consolidation and
 // resurrection only ever compare within the same categorie — a persona trait
 // never merges with a general fact just because the text happens to overlap.
@@ -77,8 +76,7 @@ export const kennis = pgTable("persona_kenmerk", {
   // 0-100, same scale as maker_memory.zekerheid — makes the confidence-threshold
   // promotion logic possible. Always 100 for soort "feit" and for "algemeen"
   // (a fact doesn't get truer by repetition, so it starts fully-weighted —
-  // still subject to rejection, just not to the bronne
-n-count ladder).
+  // still subject to rejection, just not to the bronnen-count ladder).
   zekerheid: integer("zekerheid").notNull().default(0),
   status: statusMarkeringEnum("status").notNull().default("observation"),
   // Chronicle object ids are app-generated strings ("obj_<ts>_<rand>"), not UUIDs.
@@ -111,8 +109,7 @@ n-count ladder).
 });
 
 // Singleton settings row, same pattern as SongCompanion's maker_memory_instelling
-// (uuid id, singleton enforced at the appl
-ication level, not a DB constraint).
+// (uuid id, singleton enforced at the application level, not a DB constraint).
 export const personaInstelling = pgTable("persona_instelling", {
   id: uuid("id").primaryKey().defaultRandom(),
   confidenceThreshold: integer("confidence_threshold").notNull().default(90),
@@ -147,8 +144,7 @@ export const kennisGebruik = pgTable("persona_kenmerk_gebruik", {
     .references(() => kennis.id, { onDelete: "cascade" }),
   gebruiktInObjectId: text("gebruikt_in_object_id").notNull(),
   context: text("context").notNull(),
-  gebruiktOp: timestamp("gebruikt_op", { withTimezone: true }).notNull().defaultNo
-w(),
+  gebruiktOp: timestamp("gebruikt_op", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // --------------------------------------------------------------------------
@@ -185,8 +181,7 @@ export const objectChunk = pgTable("object_chunk", {
 export const objectEmbedding = pgTable("object_embedding", {
   objectId: text("object_id").primaryKey(),
   embedding: vector("embedding", { dimensions: 1024 }),
-  createdAt: timestamp("created_at", { withTimezone: true }).not
-Null().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // --------------------------------------------------------------------------
@@ -231,8 +226,7 @@ export const episodeSourceTypeEnum = pgEnum("episode_source_type", [
 ]);
 
 // A knowledge gap's own small lifecycle, independent of any one hypothesis.
-// unknown = never looked into. not_asked
- = identified but no source has
+// unknown = never looked into. not_asked = identified but no source has
 // addressed it yet. known_absent = actively looked, genuinely no answer
 // exists in the sources checked (a real finding, not silence). resolved =
 // answered, normally via a linked hypothesis reaching "confirmed".
@@ -268,8 +262,7 @@ export const hypothesis = pgTable("hypothesis", {
   // an existing fact rather than standing alone. Copied onto the resulting
   // fact at confirmation — see fact.supersedesFactId below for why this
   // can't simply be computed later by mutating the old fact.
-  supersedesFactId: uuid("supersedes_fact_id").references(() => fact.id, { onDelete: "res
-trict" }),
+  supersedesFactId: uuid("supersedes_fact_id").references(() => fact.id, { onDelete: "restrict" }),
   // Local Qwen3-Embedding-0.6B (server/embedding.js), same model and
   // dimension as persona_kenmerk — lets POST /hypotheses check for an
   // existing similar OPEN hypothesis before creating a near-duplicate.
@@ -306,8 +299,7 @@ export const episode = pgTable(
     capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("episode_observation_hash
-_unique").on(table.observationHash),
+    uniqueIndex("episode_observation_hash_unique").on(table.observationHash),
     check(
       "episode_extraction_confidence_range",
       sql`${table.extractionConfidence} IS NULL OR (${table.extractionConfidence} >= 0 AND ${table.extractionConfidence} <= 100)`,
@@ -352,8 +344,7 @@ export const fact = pgTable(
       .notNull()
       .references(() => hypothesis.id, { onDelete: "restrict" }),
     // Copied from the confirming hypothesis at creation time — never set or
-    // changed afterward, since a fact row itself is never touched a
-gain.
+    // changed afterward, since a fact row itself is never touched again.
     validFrom: timestamp("valid_from", { withTimezone: true }),
     validTo: timestamp("valid_to", { withTimezone: true }),
     temporalText: text("temporal_text"),

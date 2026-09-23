@@ -38,5 +38,4 @@ CREATE TABLE "knowledge_gap" (
 );
 --> statement-breakpoint
 ALTER TABLE "evidence" ADD CONSTRAINT "evidence_hypothesis_id_hypothesis_id_fk" FOREIGN KEY ("hypothesis_id") REFERENCES "public"."hypothesis"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "knowledge_gap" ADD CONSTRAINT "knowledge_gap_hypothesis_id_hypothesis_id_fk" FOREIGN KEY ("hypothesis_id") REFERENCES "public"."hypothesis"("id") ON DELETE set null ON UPDATE n
-o action;
+ALTER TABLE "knowledge_gap" ADD CONSTRAINT "knowledge_gap_hypothesis_id_hypothesis_id_fk" FOREIGN KEY ("hypothesis_id") REFERENCES "public"."hypothesis"("id") ON DELETE set null ON UPDATE no action;

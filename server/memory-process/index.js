@@ -34,8 +34,7 @@ const { getResourceUsage } = require("../resourceUsage");
 // Localhost-only, never exposed to the browser directly — Chronicle's
 // capture process (server/index.js) is the only caller, proxying
 // /api/persona requests here over loopback. No CORS/origin middleware
-// needed for that reason: this port n
-ever receives a browser-origin request.
+// needed for that reason: this port never receives a browser-origin request.
 const HOST = "127.0.0.1";
 const PORT = process.env.MEMORY_PORT || 4578;
 
@@ -79,8 +78,7 @@ app.get("/api/settings/capture-activity", (_req, res) => {
 // live in a different OS process.
 startBackgroundJobs();
 
-const server = app.listen(PORT, HOST, (
-) => {
+const server = app.listen(PORT, HOST, () => {
   console.log(`\n  Chronicle memory-process running at http://${HOST}:${PORT}\n`);
 });
 

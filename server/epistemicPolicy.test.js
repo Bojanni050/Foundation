@@ -44,8 +44,7 @@ test("no auto-promotion: meeting verification criteria never changes hypothesis.
   assert.strictEqual(hypothesis.status, "open");
 });
 
-test("episode provenance: missing joined p
-rovenance fails loudly", () => {
+test("episode provenance: missing joined provenance fails loudly", () => {
   assert.throws(
     () => countIndependentSources([{ richting: "supporting", episode_id: "ep_1" }]),
     /joined episode provenance required/,
@@ -91,8 +90,7 @@ test("fact construction: temporal scope and supersession target copy once, from 
     hypothese: "user prefers dark ballads",
     valid_from: null,
     valid_to: null,
-    temporal_text: "since March 2026"
-,
+    temporal_text: "since March 2026",
     supersedes_fact_id: "fact_old",
   };
   const fact = buildFactFromHypothesis(hypothesis);

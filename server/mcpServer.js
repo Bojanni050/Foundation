@@ -43,8 +43,7 @@ function textResult(value) {
   return { content: [{ type: "text", text: JSON.stringify(value, null, 2) }] };
 }
 
-function errorResu
-lt(err) {
+function errorResult(err) {
   return { content: [{ type: "text", text: `Error: ${err.message}` }], isError: true };
 }
 
@@ -98,8 +97,7 @@ server.registerTool(
     description:
       "Full detail for one hypothesis: its evidence (each with the frozen episode it came from), the current " +
       "verification verdict (read-only — meeting the bar never changes anything by itself), and its resulting " +
-      "fact if it has been co
-nfirmed.",
+      "fact if it has been confirmed.",
     inputSchema: { id: z.string().describe("Hypothesis id") },
   },
   async ({ id }) => {
@@ -145,8 +143,7 @@ server.registerTool(
       sourceType: z.enum(["chat-import", "document", "explicit-input", "system-observation"]),
       spreker: z.string().optional().describe("Who said it, if identifiable"),
       observedAt: z.string().optional().describe("ISO timestamp of when the source content itself occurred"),
-      bronReferentie: z.st
-ring().optional().describe("Precise pointer within the source, e.g. a turn index"),
+      bronReferentie: z.string().optional().describe("Precise pointer within the source, e.g. a turn index"),
       conversationIdentity: z.string().optional().describe('Provider-conversation identity, e.g. "chatgpt:<uuid>"'),
       extractionConfidence: z.number().int().min(0).max(100).optional(),
       contextWindow: z.string().optional().describe("Short surrounding text for interpretation"),
@@ -192,8 +189,7 @@ server.registerTool(
     title: "Link evidence to a hypothesis",
     description:
       'Interprets one frozen episode as evidence for a hypothesis, in a direction: "supporting", "contradicting", ' +
-      "or \"contextualizing\". Never touches the hypothesis's stat
-us — adding evidence, however conclusive, is " +
+      "or \"contextualizing\". Never touches the hypothesis's status — adding evidence, however conclusive, is " +
       "not the same act as a human confirming or rejecting it.",
     inputSchema: {
       hypothesisId: z.string(),

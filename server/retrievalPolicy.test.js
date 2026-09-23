@@ -39,8 +39,7 @@ test("confidence: confirmed beats superseded, superseded beats rejected", () => 
 });
 
 test("confidence: an open hypothesis's verdict distinguishes verified/contested/neither", () => {
-  assert.strictEqual(confidenceScore({ status: "open", verd
-ict: { verified: true } }), 0.75);
+  assert.strictEqual(confidenceScore({ status: "open", verdict: { verified: true } }), 0.75);
   assert.strictEqual(confidenceScore({ status: "open", verdict: { contested: true } }), 0.4);
   assert.strictEqual(confidenceScore({ status: "open", verdict: {} }), 0.25);
 });

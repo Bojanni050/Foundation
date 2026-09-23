@@ -48,8 +48,7 @@ async function auditMemoryIntegrity(pool, input) {
          SELECT object_id FROM object_embedding
        )
        SELECT object_id, COUNT(*) OVER()::int AS total_count
-       FROM indexed WHERE NOT (obje
-ct_id = ANY($1::text[]))
+       FROM indexed WHERE NOT (object_id = ANY($1::text[]))
        ORDER BY object_id LIMIT 50`,
       [objectIds],
     );

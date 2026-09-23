@@ -50,8 +50,7 @@ function normalizeEpisodeInput(input = {}) {
     bronsoort,
     fragment,
     spreker: optionalText(input.spreker),
-    observedAt: normali
-zeObservedAt(input.observedAt),
+    observedAt: normalizeObservedAt(input.observedAt),
     bronReferentie: optionalText(input.bronReferentie),
     conversationIdentity: optionalText(input.conversationIdentity),
     sourceType,

@@ -54,8 +54,7 @@ function restoreAttachment(buffer, id, filename, mimeType) {
   ensureDir();
   const dir = path.join(DATA_DIR, id);
   fs.mkdirSync(dir);
-  const safeName = path.basename(filename || "file").replace(/[^\w.\-
-]+/g, "_") || "file";
+  const safeName = path.basename(filename || "file").replace(/[^\w.\-]+/g, "_") || "file";
   fs.writeFileSync(path.join(dir, safeName), buffer);
   const meta = {
     id,
@@ -109,8 +108,7 @@ function purgeOrphanAttachments(referencedIds) {
   let bytes = 0;
   for (const id of orphanIds) {
     const dir = path.resolve(DATA_DIR, id);
-   
- if (path.dirname(dir) !== path.resolve(DATA_DIR) || !ID_RE.test(id)) {
+    if (path.dirname(dir) !== path.resolve(DATA_DIR) || !ID_RE.test(id)) {
       throw new Error(`refusing unsafe attachment path: ${id}`);
     }
     bytes += Number(byId.get(id)?.size || 0);

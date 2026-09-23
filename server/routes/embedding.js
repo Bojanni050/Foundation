@@ -45,8 +45,7 @@ router.post("/:objectId/embed", async (req, res) => {
     await client.query("BEGIN");
 
     // Re-embed is idempotent: clear previous chunks for this object first
-    // 
-(covers re-import / re-processing the same object).
+    // (covers re-import / re-processing the same object).
     await client.query("DELETE FROM object_chunk WHERE object_id = $1", [objectId]);
 
     for (let i = 0; i < chunkSources.length; i++) {

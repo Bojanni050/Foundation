@@ -34,8 +34,7 @@ router.get("/kenmerken", async (req, res) => {
 // path, where cost actually accumulates. Registered before POST /kenmerken
 // so the literal "/relevant" segment isn't swallowed by :id-style matching.
 router.post("/kenmerken/relevant", async (req, res) => {
-  const { texts, limit } = req.body || 
-{};
+  const { texts, limit } = req.body || {};
   if (!Array.isArray(texts) || texts.length === 0) {
     return res.status(400).json({ error: "texts (non-empty array) required" });
   }
@@ -85,8 +84,7 @@ router.post("/kenmerken", async (req, res) => {
   try {
     embeddingLiteral = `[${(await embed(kenmerk)).join(",")}]`;
   } catch (err) {
-    console.error("local embedding
- failed, saving kenmerk without one:", err.message);
+    console.error("local embedding failed, saving kenmerk without one:", err.message);
   }
 
   // 2. Perform vector duplicate detection if embedding is available
@@ -132,8 +130,7 @@ router.post("/kenmerken", async (req, res) => {
 
   // 2b. No active match — check for a mens-rejected pattern that might be
   // resurrecting with new evidence (Manifest §5, "Heropstanding"). A
-  // consolidat
-ie-rejectie never resurrects on its own (it lives on in its
+  // consolidatie-rejectie never resurrects on its own (it lives on in its
   // survivor, verwerp_bron != 'mens' excludes those); only a mens-rejectie's
   // *conclusion* can be revisited, and only given a source it hasn't seen
   // before — the same evidence recurring isn't a new aanleiding.
@@ -169,8 +166,7 @@ ie-rejectie never resurrects on its own (it lives on in its
           `INSERT INTO persona_kenmerk
              (kenmerk, categorie, bron_object_ids, zekerheid, status, soort, gevoelig, embedding, voorganger_id)
            VALUES ($1, $2, $3, $4, 'hypothesis', $5, true, $6, $7) RETURNING *`,
-          [rejectedMatch.kenmerk, rejec
-tedMatch.categorie, mergedBronObjectIds, zekerheid, rejectedMatch.soort, embeddingLiteral, rejectedMatch.id]
+          [rejectedMatch.kenmerk, rejectedMatch.categorie, mergedBronObjectIds, zekerheid, rejectedMatch.soort, embeddingLiteral, rejectedMatch.id]
         );
         return res.status(201).json({ ...rows[0], resurrected: true });
       }
@@ -218,8 +214,7 @@ router.get("/kenmerken/:id/vergelijkbaar", async (req, res) => {
 });
 
 // PATCH /api/persona/kenmerken/:id/versterk
-router.patch("/kenmerken/:id/versterk", async 
-(req, res) => {
+router.patch("/kenmerken/:id/versterk", async (req, res) => {
   const { bronObjectId } = req.body || {};
   if (!bronObjectId) return res.status(400).json({ error: "bronObjectId required" });
   const { rows: existingRows } = await pool.query("SELECT * FROM persona_kenmerk WHERE id = $1", [req.params.id]);
@@ -270,8 +265,7 @@ router.patch("/kenmerken/:id/bevestigen", async (req, res) => {
   }
   const { rows } = await pool.query(
     `UPDATE persona_kenmerk SET status = 'confirmed', zekerheid = 100, laatst_versterkt_op = now()
-     WHERE id = $1 RETURNIN
-G *`,
+     WHERE id = $1 RETURNING *`,
     [req.params.id]
   );
   if (!rows[0]) return res.status(404).json({ error: "not found" });
@@ -320,8 +314,7 @@ router.patch("/kenmerken/:id/samenvoegen", async (req, res) => {
 
   try {
     await assertStatusChangeAllowed(pool, "persona_kenmerk", req.params.id, "rejected");
-    await assertStatusChangeAllowed(poo
-l, "persona_kenmerk", winnaarId, status);
+    await assertStatusChangeAllowed(pool, "persona_kenmerk", winnaarId, status);
   } catch (err) {
     return res.status(409).json({ error: err.message });
   }

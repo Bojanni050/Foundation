@@ -39,8 +39,7 @@ const EVIDENCE_DIRECTIONS = ["supporting", "contradicting", "contextualizing"];
 // of trusting a single blended number.
 //
 // Facts don't carry their own embedding: fact.inhoud is copied verbatim from
-// the confirming hypothesis's hypothese text (buildFa
-ctFromHypothesis), so
+// the confirming hypothesis's hypothese text (buildFactFromHypothesis), so
 // the source hypothesis's embedding already represents it exactly — joining
 // avoids a second embed() call and a second stored vector for identical text.
 router.get("/search", async (req, res, next) => {
@@ -94,8 +93,7 @@ router.get("/search", async (req, res, next) => {
       const evidenceRows = await evidenceFor(hyp.id);
       const axes = {
         semanticRelevance: hyp.semantic_relevance,
-        temporalFit: temporalFit
-(hyp, asOfIso),
+        temporalFit: temporalFit(hyp, asOfIso),
         sourceQuality: sourceQualityFromEvidence(evidenceRows),
         confidence: confidenceScore({ status: hyp.status, verdict: isVerified(evidenceRows) }),
       };
@@ -141,8 +139,7 @@ router.post("/restore", async (req, res, next) => {
     res.json(await restoreMemory(pool, req.body));
   } catch (err) {
     if (err instanceof TypeError) return res.status(400).json({ error: err.message });
-    if (/ conflict: /.test(err.message)) return res.status(
-409).json({ error: err.message });
+    if (/ conflict: /.test(err.message)) return res.status(409).json({ error: err.message });
     return next(err);
   }
 });
@@ -213,8 +210,7 @@ async function createOrReuseEpisode(input) {
     episode.sourceType,
     episode.extractionConfidence,
     episode.contextWindow,
-    episode.observat
-ionHash,
+    episode.observationHash,
   ];
   const { rows } = await pool.query(
     `INSERT INTO episode
@@ -261,7 +257,6 @@ router.get("/episodes/:id", async (req, res) => {
 // the reflection pipeline (services/hypothesisReflectionSync.js) to scan
 // against currently-active facts. Without ?since, returns everything —
 // fine for small archives, but callers doing periodic reflection should
-
 // always pass their own last-run watermark.
 router.get("/episodes", async (req, res) => {
   const { since } = req.query;
@@ -307,8 +302,7 @@ router.get("/hypotheses", async (req, res) => {
   const { status } = req.query;
   const query =
     status && ["open", "confirmed", "rejected"].includes(status)
-      ? { text: "SELECT * FROM hypothesis WHERE status = $1 ORDER BY created_
-at DESC", values: [status] }
+      ? { text: "SELECT * FROM hypothesis WHERE status = $1 ORDER BY created_at DESC", values: [status] }
       : { text: "SELECT * FROM hypothesis ORDER BY created_at DESC", values: [] };
   const { rows } = await pool.query(query.text, query.values);
 
@@ -348,8 +342,7 @@ at DESC", values: [status] }
 router.post("/hypotheses", async (req, res) => {
   const { hypothese, verificatieCriteria, bevestigingsCriteria, afwijzingsCriteria, validFrom, validTo, temporalText, supersedesFactId } =
     req.body || {};
-  if (!hypo
-these) return res.status(400).json({ error: "hypothese required" });
+  if (!hypothese) return res.status(400).json({ error: "hypothese required" });
   if (supersedesFactId) {
     const { rows: factRows } = await pool.query("SELECT id FROM fact WHERE id = $1", [supersedesFactId]);
     if (!factRows[0]) return res.status(404).json({ error: "supersedesFactId does not reference an existing fact" });
@@ -403,8 +396,7 @@ these) return res.status(400).json({ error: "hypothese required" });
 // GET /api/memory/hypotheses/:id/vergelijkbaar — nearest open hypotheses by
 // embedding similarity, same shape as kenmerken.js's own /vergelijkbaar.
 router.get("/hypotheses/:id/vergelijkbaar", async (req, res) => {
-  const { rows: cur } = awa
-it pool.query("SELECT embedding FROM hypothesis WHERE id = $1", [req.params.id]);
+  const { rows: cur } = await pool.query("SELECT embedding FROM hypothesis WHERE id = $1", [req.params.id]);
   if (!cur[0]) return res.status(404).json({ error: "not found" });
   if (!cur[0].embedding) return res.status(409).json({ error: "hypothesis has no embedding yet" });
   const { rows } = await pool.query(
@@ -447,8 +439,7 @@ router.get("/facts", async (req, res) => {
   const query =
     req.query.active === "true"
       ? "SELECT * FROM fact WHERE id NOT IN (SELECT supersedes_fact_id FROM fact WHERE supersedes_fact_id IS NOT NULL) ORDER BY created_at DESC"
-      : "SELECT * FROM fact 
-ORDER BY created_at DESC";
+      : "SELECT * FROM fact ORDER BY created_at DESC";
   const { rows } = await pool.query(query);
   res.json(rows);
 });
@@ -488,8 +479,7 @@ router.post("/facts/relevant", async (req, res) => {
        FROM fact f
        JOIN hypothesis h ON h.id = f.hypothesis_id
        WHERE h.embedding IS NOT NULL
-         AND f.id NOT IN (SELECT supersedes_fact_id FROM fact WHERE superse
-des_fact_id IS NOT NULL)
+         AND f.id NOT IN (SELECT supersedes_fact_id FROM fact WHERE supersedes_fact_id IS NOT NULL)
        ORDER BY h.embedding <=> $1
        LIMIT $2`,
       [embeddingLiteral, perTextLimit]
@@ -538,8 +528,7 @@ router.post("/hypotheses/:id/evidence", async (req, res, next) => {
 });
 
 // Shared core of PATCH /hypotheses/:id/confirm — factored out so the bulk
-// route below can 
-confirm several hypotheses without duplicating the
+// route below can confirm several hypotheses without duplicating the
 // transaction/race-handling logic. Throws an Error with a `.status` (HTTP
 // status to report) on any expected failure; an unexpected error propagates
 // with no `.status`, same as it would from the single-item route.
@@ -580,8 +569,7 @@ async function confirmHypothesisById(id) {
       // reverts to "open" rather than ending up confirmed with no fact to
       // show for it. Any other error propagates uncaught, same as it would
       // from the single-item route.
-      if (err.code === "23505" && /fact_supersedes_fact_id_
-unique/.test(err.message)) {
+      if (err.code === "23505" && /fact_supersedes_fact_id_unique/.test(err.message)) {
         await client.query("ROLLBACK");
         throw Object.assign(new Error("the fact this hypothesis would supersede has already been superseded"), { status: 409 });
       }
@@ -630,8 +618,7 @@ async function rejectHypothesisById(id, reden) {
     throw Object.assign(new Error(err.message), { status });
   }
   const { rows: updated } = await pool.query(
-    "UPDATE 
-hypothesis SET status = $1, rejected_at = $2, verwerp_reden = $3 WHERE id = $4 RETURNING *",
+    "UPDATE hypothesis SET status = $1, rejected_at = $2, verwerp_reden = $3 WHERE id = $4 RETURNING *",
     [patch.status, patch.rejectedAt, patch.verwerpReden, id]
   );
   return updated[0];
@@ -677,8 +664,7 @@ router.patch("/hypotheses/bulk-reject", async (req, res) => {
   const results = [];
   for (const id of ids) {
     try {
-      results.push({ id, success: t
-rue, hypothesis: await rejectHypothesisById(id, reden) });
+      results.push({ id, success: true, hypothesis: await rejectHypothesisById(id, reden) });
     } catch (err) {
       results.push({ id, success: false, error: err.message });
     }
@@ -726,7 +712,6 @@ router.patch("/knowledge-gaps/:id/status", async (req, res) => {
   const { rows: updated } = await pool.query(
     `UPDATE knowledge_gap
      SET status = $1, resolved_at = $2, hypothesis_id = COALESCE($3, hypothesis_id)
-
      WHERE id = $4 RETURNING *`,
     [patch.status, patch.resolvedAt || null, hypothesisId || null, req.params.id]
   );

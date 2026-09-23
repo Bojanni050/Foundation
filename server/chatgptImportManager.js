@@ -53,8 +53,7 @@ function preflightCheck() {
     return "no Chronicle API token available";
   }
   try {
-    execS
-ync("python --version", { stdio: "ignore" });
+    execSync("python --version", { stdio: "ignore" });
   } catch {
     return "python not found on PATH — see tools/chatgpt_bulk_import/README.md";
   }
@@ -117,8 +116,7 @@ async function startBulkImport({ limit, headless, provider = "chatgpt", exportPa
     let stdoutBuffer = "";
     child.stdout.on("data", (data) => {
       stdoutBuffer += data.toString();
-      const lines = stdoutBuffer
-.split(/\r?\n/);
+      const lines = stdoutBuffer.split(/\r?\n/);
       stdoutBuffer = lines.pop() || "";
       lines.filter(Boolean).forEach((line) => pushLogLine("stdout", line));
     });
@@ -181,8 +179,7 @@ function stopBulkImport() {
       // If there was no PID, it was stopped before it spawned.
       // We still update the state properly.
       status = "exited";
-      activeRunId = null
-;
+      activeRunId = null;
       lastStoppedAt = Date.now();
   }
   

@@ -53,8 +53,7 @@ async function restoreEpisodes(client, rows) {
   for (const row of rows) {
     const existing = await client.query(
       "SELECT id, observation_hash FROM episode WHERE id = $1 OR observation_hash = $2",
-      [row.id, row.observation_h
-ash],
+      [row.id, row.observation_hash],
     );
     const sameObservation = existing.rows.find((candidate) => candidate.observation_hash === row.observation_hash);
     if (sameObservation) {
@@ -104,8 +103,7 @@ async function restoreEvidence(client, rows, episodeIdMap) {
   }
 }
 
-async
- function upsertKnowledgeGaps(client, rows) {
+async function upsertKnowledgeGaps(client, rows) {
   for (const row of rows) {
     await client.query(
       `INSERT INTO knowledge_gap (id, onderwerp, status, hypothesis_id, resolved_at, created_at)
@@ -143,7 +141,6 @@ async function upsertKnowledge(client, rows) {
 }
 
 async function upsertKnowledgeUsage(client, rows) {
-
   for (const row of rows) {
     await client.query(
       `INSERT INTO persona_kenmerk_gebruik
@@ -190,8 +187,7 @@ async function restoreMemoryWithClient(client, input) {
   await upsertKnowledge(client, memory.tables.knowledge);
   await upsertKnowledgeUsage(client, memory.tables.knowledgeUsage);
   await replaceSingletonTables(client, memory.tables);
-  // Th
-ese are derived/model-specific and must never remain stale after source restoration.
+  // These are derived/model-specific and must never remain stale after source restoration.
   await client.query("DELETE FROM object_chunk");
   await client.query("DELETE FROM object_embedding");
   return {

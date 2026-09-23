@@ -45,8 +45,7 @@ async function consolidateKenmerken() {
       // categorie so an "algemeen" fact never merges into a "persona" trait
       // (or vice versa) just because their embeddings happen to be close.
       const { rows: matches } = await pool.query(
-        `SELECT id, kenmerk, status, zekerheid, bron_object_ids, soort, categorie, 1 - (
-embedding <=> $1) AS similarity
+        `SELECT id, kenmerk, status, zekerheid, bron_object_ids, soort, categorie, 1 - (embedding <=> $1) AS similarity
          FROM persona_kenmerk
          WHERE id != $2 AND embedding IS NOT NULL AND status != 'rejected' AND categorie = $3 AND (1 - (embedding <=> $1)) > 0.75`,
         [current.embedding, current.id, current.categorie]
@@ -91,7 +90,6 @@ embedding <=> $1) AS similarity
           await pool.query(
             "UPDATE persona_kenmerk SET status = 'rejected', vervangen_door = $1, verwerp_bron = 'consolidatie' WHERE id = $2",
             [current.id, match.id]
-
           );
         }
         

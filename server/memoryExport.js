@@ -35,8 +35,7 @@ async function buildMemoryExport(pool) {
   }
   return {
     format: "foundation-chronicle-memory",
-    version
-: MEMORY_EXPORT_VERSION,
+    version: MEMORY_EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
     derivedDataExcluded: ["object_chunk", "object_embedding", "embedding vectors"],
     tables,

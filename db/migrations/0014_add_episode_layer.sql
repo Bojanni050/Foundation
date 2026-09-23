@@ -45,8 +45,7 @@ SELECT
 	"bron_referentie",
 	"conversation_identity",
 	'explicit-input'::"episode_source_type",
-	'legacy:' || "i
-d"::text,
+	'legacy:' || "id"::text,
 	"created_at"
 FROM "evidence";--> statement-breakpoint
 

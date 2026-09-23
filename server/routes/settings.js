@@ -63,8 +63,7 @@ router.get("/status", async (_req, res) => {
 
 // GET /api/settings/embedding-model
 router.get("/embedding-model", (_req, res) => {
-  res.json({ model: getEmbed
-dingModel(), options: MODEL_OPTIONS });
+  res.json({ model: getEmbeddingModel(), options: MODEL_OPTIONS });
 });
 
 // PATCH /api/settings/embedding-model
@@ -126,8 +125,7 @@ router.post("/seed", async (req, res) => {
       {
         kenmerk: "actively learning Go programming",
         soort: "patroon",
-        s
-tatus: "confirmed",
+        status: "confirmed",
         zekerheid: 90,
         temporal_text: "since February 2026",
         bron_object_ids: ["obj_demo_2", "obj_demo_5"]
@@ -190,8 +188,7 @@ tatus: "confirmed",
 
     res.json({ success: true, count: savedRows.length });
   } catch (err) {
-    console.error("se
-eding failed:", err.message);
+    console.error("seeding failed:", err.message);
     res.status(500).json({ error: err.message });
   }
 });

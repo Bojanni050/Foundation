@@ -37,8 +37,7 @@ function countIndependentSources(evidenceItems) {
 // wants to show "these 3 fragments are actually 1 source" rather than just
 // a bare count.
 function groupIndependentSources(evidenceItems) {
-  cons
-t groups = new Map();
+  const groups = new Map();
   for (const item of evidenceItems) {
     const key = sourceKeyForEvidence(item);
     if (!groups.has(key)) groups.set(key, []);
@@ -86,8 +85,7 @@ function confirmHypothesis(hypothesis) {
   if (!canConfirm(hypothesis)) {
     throw new Error(`confirmHypothesis: hypothesis ${hypothesis.id} is "${hypothesis.status}", not "open"`);
   }
-  return { status: "confir
-med", confirmedAt: new Date() };
+  return { status: "confirmed", confirmedAt: new Date() };
 }
 
 // The fact row to insert when a hypothesis is confirmed — a pure mapping,
@@ -133,7 +131,6 @@ function canTransitionKnowledgeGap(fromStatus, toStatus) {
 }
 
 // Returns the patch to apply. `resolved` should normally carry the
-
 // hypothesisId that resolved it, but that's the caller's (route's)
 // responsibility to attach — this function only enforces the transition.
 function transitionKnowledgeGap(gap, toStatus) {

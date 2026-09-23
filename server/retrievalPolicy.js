@@ -40,8 +40,7 @@ function sourceQualityFromEvidence(evidenceRows) {
       const c = episode.extraction_confidence ?? episode.extractionConfidence;
       return typeof c === "number" ? c : null;
     })
-    .filter((c) => c !== null
-);
+    .filter((c) => c !== null);
   if (!confidences.length) return 0.5;
   const avg = confidences.reduce((sum, c) => sum + c, 0) / confidences.length;
   return Math.max(0, Math.min(1, avg / 100));

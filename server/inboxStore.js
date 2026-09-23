@@ -54,8 +54,7 @@ function pushToInbox(item) {
   }
 
   inbox.push(entry);
-  writeInb
-ox(inbox);
+  writeInbox(inbox);
   return entry;
 }
 

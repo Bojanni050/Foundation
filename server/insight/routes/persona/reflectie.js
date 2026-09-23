@@ -48,8 +48,7 @@ router.post("/reflectie", async (req, res) => {
       }
 
       const { rows } = await client.query(
-        `INSERT INTO persona_kenmerk (k
-enmerk, bron_object_ids, zekerheid, status, soort, gevoelig, embedding, valid_from, temporal_text)
+        `INSERT INTO persona_kenmerk (kenmerk, bron_object_ids, zekerheid, status, soort, gevoelig, embedding, valid_from, temporal_text)
          VALUES ($1, ARRAY[$2], $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
         [
           c.kenmerk,
@@ -112,8 +111,7 @@ enmerk, bron_object_ids, zekerheid, status, soort, gevoelig, embedding, valid_fr
       }
 
       if (fields.length > 0) {
-        field
-s.push(`laatst_versterkt_op = now()`);
+        fields.push(`laatst_versterkt_op = now()`);
         values.push(u.id); // for WHERE id = $idx
         const query = `UPDATE persona_kenmerk SET ${fields.join(", ")} WHERE id = $${idx}`;
         await client.query(query, values);

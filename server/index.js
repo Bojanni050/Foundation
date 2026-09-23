@@ -33,9 +33,8 @@ const attachmentsRouter = require("./routes/attachments");
 // The consolidator/auto-heal jobs and the persona routes now live in their
 // own OS process (server/memory-process/index.js) — spawned and proxied
 // below. This is the capture/memory process split: a hang or crash on the
-// memory side can no longer take the inbox/attachments/connectors endpoints
-// down with it, since they're no longer sharing a
-n event loop.
+// memory side can no longer take the inbox/attachments endpoints
+// down with it, since they're no longer sharing an event loop.
 const MEMORY_HOST = "127.0.0.1";
 const MEMORY_PORT = process.env.MEMORY_PORT || 4578;
 
@@ -45,11 +44,12 @@ const PORT = process.env.CHRONICLE_PORT || 4577;
 const allowedOriginsPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^chrome-extension:\/\//;
 
 // Retries only a connection-refused failure — the signature of "this
-// sidecar process hasn't finished booting yet". Both proxied processes are
+// sidecar process hasn't finished booting yet". The proxied process is
 // spawned by this file and this file starts accepting requests immediately,
-// well before either sidecar is actually listening: the memory-process
+// well before the sidecar is actually listening: the memory-process
 // loads a ~1.5-2GB ONNX embedding model first (see startMemoryProcess
-// later, during either process's 3s auto-restart-on-crash window. Any other
+// below). Same signature again, later, during the process's 3s
+// auto-restart-on-crash window. Any other
 // failure (a genuine hang, a bad upstream response) isn't retried — those
 // aren't "not up yet", so retrying blindly would just add latency with no
 // chance of succeeding. init.body is a plain JSON string here (not a
@@ -72,8 +72,7 @@ async function fetchWithConnRefusedRetry(target, init) {
 // streams the response back — including SSE (the /runs/:runId/events route
 // depends on this staying a stream, not a buffered read). If the
 // memory-process is still down after the retries above, this fails fast
-// with a 503 instead of hanging
- the capture process's own event loop
+// with a 503 instead of hanging the capture process's own event loop
 // waiting on it.
 async function proxyToMemory(req, res) {
   const target = `http://${MEMORY_HOST}:${MEMORY_PORT}${req.originalUrl}`;
@@ -187,8 +186,7 @@ app.post("/api/objects/import", requireAuth, (req, res) => {
 });
 
 // Web app → pull queued objects (localhost binding is the safety boundary)
-app.get("/api
-/inbox", (_req, res) => {
+app.get("/api/inbox", (_req, res) => {
   res.json(readInbox());
 });
 
@@ -234,8 +232,7 @@ function startMemoryProcess() {
     memoryProcess = null;
     if (!stoppingMemoryIntentionally) {
       console.log("[Chronicle] memory-process exited unexpectedly — restarting in 3s...");
-      setTimeout(startMemoryP
-rocess, 3000);
+      setTimeout(startMemoryProcess, 3000);
     }
   });
 
@@ -246,6 +243,7 @@ rocess, 3000);
 }
 
 startMemoryProcess();
+
 const server = app.listen(PORT, HOST, () => {
   console.log(`\n  Chronicle local API running at http://${HOST}:${PORT}`);
   console.log(`  Token: ${TOKEN}`);
@@ -255,13 +253,14 @@ const server = app.listen(PORT, HOST, () => {
 function shutdown() {
   console.log("\n  Shutting down Chronicle and subprocesses...");
   stoppingMemoryIntentionally = true;
+
   if (memoryProcess) {
     if (process.platform === "win32") {
       spawn("taskkill", ["/pid", memoryProcess.pid, "/f", "/t"]);
     } else {
       memoryProcess.kill("SIGTERM");
     }
-  }  }
+  }
 
   server.close(() => process.exit(0));
 }

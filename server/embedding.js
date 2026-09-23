@@ -46,8 +46,7 @@ async function getPipeline() {
 // here (routes/embedding.js sends one chunk per turn, whatever its length),
 // and the ONNX pipeline itself has no truncation/max_length option applied.
 // An unbroken blob of text (observed cause: a giant base64 data: URI that
-// slipped through from a 
-pasted image) tokenizes far worse than its byte
+// slipped through from a pasted image) tokenizes far worse than its byte
 // length suggests — no whitespace for the tokenizer to split on — and once
 // blew a ~13GB attention-mask allocation, crashing the embedding pipeline
 // outright. This is the single choke point every embed() caller goes
@@ -81,8 +80,7 @@ async function embed(text) {
     console.warn(
       `[embed] Input has abnormally low whitespace density (${input.length} chars) — ` +
       `likely base64/binary/minified content, not language. Truncating to ${SPARSE_WHITESPACE_MAX_CHARS} chars ` +
-      `to avoid an oversized tokenization (see 
-MAX_EMBED_CHARS comment above).`
+      `to avoid an oversized tokenization (see MAX_EMBED_CHARS comment above).`
     );
     input = input.slice(0, SPARSE_WHITESPACE_MAX_CHARS);
   }

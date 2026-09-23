@@ -58,8 +58,7 @@ class AttachmentRestoreSessionStore {
   }
 
   require(sessionId) {
-    if (!/^[a-f0-9]{24}$/.test
-(sessionId || "")) {
+    if (!/^[a-f0-9]{24}$/.test(sessionId || "")) {
       const error = new Error("attachment restore session not found");
       error.code = "RESTORE_SESSION_NOT_FOUND";
       throw error;

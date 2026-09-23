@@ -11,6 +11,8 @@
 # (scopes: Auth keys read+write) -> Generate credential. ID + secret direct koperen.
 # De runner joint als ephemeral Tailscale-node (tag:ci) en SSHt over het
 # tailnet; poort 22 blijft gesloten voor het publieke internet.
+# Op de VPS moet /opt/Foundation/.env bestaan met o.a. DATABASE_URL;
+# de migratiestap sourceert dat bestand expliciet.
 # De deploy is bewust simpel en veilig: pull -> deps -> migraties -> pm2 restart.
 # Hij draait NIET op pull-requests, alleen op main.
 name: Deploy to VPS
@@ -55,7 +57,12 @@ jobs:
             cd server && npm install --no-audit --no-fund && cd ..
 
             echo "==> Migraties (drizzle-kit)"
-            cd db && npm install --no-audit --no-fund && npx drizzle-kit migrate && cd ..
+            cd db && npm install --no-audit --no-fund
+            set -a
+            . /opt/Foundation/.env
+            set +a
+            npx drizzle-kit migrate
+            cd ..
 
             echo "==> Herstart processen"
             pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js

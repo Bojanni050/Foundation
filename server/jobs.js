@@ -33,8 +33,24 @@ async function consolidateKenmerken() {
   console.log("[Consolidator] Running persona consolidation job...");
   try {
     // Query all non-rejected kenmerken that have embeddings
+    // Stash-geïnspireerd watermerk (consolidation_progress, migratie 0021):
+    // alleen sinds de vorige voltooide run aangemaakte kenmerken worden
+    // outer-gescand; elk wordt nog wel tegen ALLE niet-rejected kenmerken
+    // vergeleken (de per-item similarity-query filtert niet op created_at),
+    // dus merge-coverage blijft identiek — de scan zelf is incrementeel.
+    const { rows: nowRows } = await pool.query("SELECT now() AS run_started_at");
+    const runStartedAt = nowRows[0].run_started_at;
+    const { rows: cpRows } = await pool.query(
+      "SELECT last_run FROM consolidation_progress WHERE id = '00000000-0000-0000-0000-000000000000'"
+    );
+    const lastRun = cpRows[0] ? cpRows[0].last_run : null;
     const { rows } = await pool.query(
-      "SELECT * FROM persona_kenmerk WHERE embedding IS NOT NULL AND status != 'rejected' ORDER BY created_at ASC"
+      `SELECT * FROM persona_kenmerk
+       WHERE embedding IS NOT NULL AND status != 'rejected'
+         AND created_at > COALESCE($1, to_timestamp(0))
+         AND created_at <= $2
+       ORDER BY created_at ASC`,
+      [lastRun, runStartedAt]
     );
     
     const processedIds = new Set();
@@ -116,6 +132,16 @@ async function consolidateKenmerken() {
         );
       }
     }
+
+    // Watermerk pas ná volledige verwerking van de batch opschrijven — een
+    // crash halverwege herverwerkt dezelfde rijen gewoon bij de volgende run
+    // (de merge-logica is aan de survivor-kant idempotent).
+    await pool.query(
+      `INSERT INTO consolidation_progress (id, last_run)
+       VALUES ('00000000-0000-0000-0000-000000000000', $1)
+       ON CONFLICT (id) DO UPDATE SET last_run = EXCLUDED.last_run, updated_at = now()`,
+      [runStartedAt]
+    );
   } catch (err) {
     console.error("[Consolidator] Consolidator failed:", err.message);
   }

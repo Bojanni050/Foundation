@@ -1,11 +1,15 @@
 # Auto-deploy naar de VPS bij elke push naar main.
 #
-# Vereiste repo-secrets (Settings → Secrets and variables → Actions):
-#   SSH_HOST        — hostname/IP van de VPS
-#   SSH_USER        — deploy-gebruiker (bijv. root of een aparte deploy-user)
-#   SSH_PRIVATE_KEY — private key die bij een authorized_key op de VPS hoort
+# Vereiste repo-secrets (Settings -> Secrets and variables -> Actions):
+#   TS_OAUTH_CLIENT_ID  - Tailscale OAuth client ID (Settings -> OAuth clients)
+#   TS_OAUTH_SECRET     - Tailscale OAuth client secret
+#   SSH_HOST            - Tailscale-hostname of 100.x-IP van de VPS
+#   SSH_USER            - deploy-gebruiker op de VPS
+#   SSH_PRIVATE_KEY     - private key die bij een authorized_key op de VPS hoort
 #
-# De deploy is bewust simpel en veilig: pull → deps → migraties → pm2 restart.
+# De runner joint als ephemeral Tailscale-node (tag:ci) en SSHt over het
+# tailnet; poort 22 blijft gesloten voor het publieke internet.
+# De deploy is bewust simpel en veilig: pull -> deps -> migraties -> pm2 restart.
 # Hij draait NIET op pull-requests, alleen op main.
 name: Deploy to VPS
 
@@ -16,16 +20,23 @@ on:
 
 concurrency:
   group: deploy-vps
-  cancel-in-progress: false   # deploys queueën zich, niet annuleren
+  cancel-in-progress: false   # deploys queueen zich, niet annuleren
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
+      - name: Join tailnet als ephemeral CI-node
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Deploy via SSH (over Tailscale)
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST }}
+          host: ${{ secrets.SSH_HOST }}     # 100.x.x.x of tailscale-hostname
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script_stop: true   # stop bij de eerste fout — geen half gedeployde staat

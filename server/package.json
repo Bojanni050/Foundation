@@ -1,0 +1,23 @@
+{
+  "name": "chronicle-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chronicle local API server — localhost-only inbox queue for the browser extension pipeline, plus the Persona API.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "mcp": "node mcpServer.js",
+    "test:mcp": "node mcpServer.test.js"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "axios": "^1.18.1",
+    "better-sqlite3": "^12.11.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "pg": "^8.22.0",
+    "zod": "^4.4.3"
+  }
+}

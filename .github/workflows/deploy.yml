@@ -18,11 +18,11 @@ name: Deploy to VPS
 on:
   push:
     branches: [main]
-  workflow_dispatch: {}   # handmatig triggerbaar via de Actions-tab
+  workflow_dispatch: {}
 
 concurrency:
   group: deploy-vps
-  cancel-in-progress: false   # deploys queueen zich, niet annuleren
+  cancel-in-progress: false
 
 jobs:
   deploy:
@@ -34,25 +34,22 @@ jobs:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
-          # wacht tot de VPS bereikbaar is over het tailnet (max 3 min)
           ping: ${{ secrets.SSH_HOST }}
 
       - name: Deploy via SSH (over Tailscale)
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST }}     # 100.x.x.x of tailscale-hostname
+          host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script_stop: true   # stop bij de eerste fout — geen half gedeployde staat
+          script_stop: true
           script: |
             set -e
             cd /opt/Foundation
 
             echo "==> Git pull"
             git fetch origin
- 
-
-           git reset --hard origin/main
+            git reset --hard origin/main
 
             echo "==> Dependencies (server)"
             cd server && npm install --no-audit --no-fund && cd ..
@@ -68,7 +65,7 @@ jobs:
             sleep 3
             TOKEN=$(cat server/data/token.txt)
             if curl -sf http://127.0.0.1:4577/api/settings/status -H "Authorization: Bearer $TOKEN" > /dev/null; then
-              echo "API reageert — deploy OK"
+              echo "API reageert - deploy OK"
             else
               echo "API reageert NIET"
               pm2 logs chronicle --lines 30 --nostream

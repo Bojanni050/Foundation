@@ -42,7 +42,9 @@ const UPSERT_SQL = `
     attachments = EXCLUDED.attachments,
     occurred_at = EXCLUDED.occurred_at,
     content_hash = EXCLUDED.content_hash,
-    updated_at = now()
+    updated_at = now(),
+    -- Gegroeide herlevering van dezelfde conversatie: verwerk opnieuw.
+    memory_processed_at = NULL
   RETURNING id, provider_conversation_id, (xmax = 0) AS inserted_new, ingested_at, updated_at
 `;
 

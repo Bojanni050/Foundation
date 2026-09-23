@@ -51,6 +51,7 @@ jobs:
             echo "==> Git pull"
             git fetch origin
  
+
            git reset --hard origin/main
 
             echo "==> Dependencies (server)"
@@ -65,6 +66,11 @@ jobs:
 
             echo "==> Smoke-check"
             sleep 3
-            curl -sf http://127.0.0.1:4577/api/settings/status -H "Authorization: Bearer $(cat server/data/token.txt)" > /dev/null \
-              && echo "API reageert — deploy OK" \
-              || (echo "API reageert NIET"; pm2 logs chronicle --lines 30 --nostream; exit 1)
+            TOKEN=$(cat server/data/token.txt)
+            if curl -sf http://127.0.0.1:4577/api/settings/status -H "Authorization: Bearer $TOKEN" > /dev/null; then
+              echo "API reageert — deploy OK"
+            else
+              echo "API reageert NIET"
+              pm2 logs chronicle --lines 30 --nostream
+              exit 1
+            fi

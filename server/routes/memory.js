@@ -722,4 +722,92 @@ router.patch("/knowledge-gaps/:id/status", async (req, res) => {
 // de brug exact hetzelfde idempotente insert-pad gebruikt als de HTTP-route.
 router.createOrReuseEpisode = createOrReuseEpisode;
 
+// Gedeeld met server/hypothesisReflectionSync.js (de reflectie-engine): de
+// engine stelt voor, de mens bevestigt — dus ze schrijft hypotheses via
+// exact hetzelfde pad als de handmatige flow, inclusief de >0.82
+// near-duplicate-check en de embedding-opslag. Zonder dit pad zou de engine
+// de dedup-regels van de route moeten namaken (drift-risico).
+async function createOrReuseHypothesis(input) {
+  const {
+    hypothese, verificatieCriteria, bevestigingsCriteria, afwijzingsCriteria,
+    validFrom, validTo, temporalText, supersedesFactId,
+  } = input;
+  if (!hypothese) throw new TypeError("hypothese required");
+  if (supersedesFactId) {
+    const { rows: factRows } = await pool.query("SELECT id FROM fact WHERE id = $1", [supersedesFactId]);
+    if (!factRows[0]) throw new TypeError("supersedesFactId does not reference an existing fact");
+  }
+  let embeddingLiteral = null;
+  try {
+    embeddingLiteral = `[${(await embed(hypothese)).join(",")}]`;
+  } catch (err) {
+    console.error("local embedding failed, saving hypothesis without one:", err.message);
+  }
+  if (embeddingLiteral) {
+    try {
+      const { rows: matches } = await pool.query(
+        `SELECT *, 1 - (embedding <=> $1) AS similarity
+         FROM hypothesis
+         WHERE embedding IS NOT NULL AND status = 'open'
+         ORDER BY embedding <=> $1
+         LIMIT 1`,
+        [embeddingLiteral]
+      );
+      const bestMatch = matches[0];
+      if (bestMatch && bestMatch.similarity > 0.82) {
+        return { hypothesis: bestMatch, matched: true };
+      }
+    } catch (err) {
+      console.error("Server-side hypothesis duplicate detection failed:", err.message);
+    }
+  }
+  const { rows } = await pool.query(
+    `INSERT INTO hypothesis
+       (hypothese, verificatie_criteria, bevestigings_criteria, afwijzings_criteria, valid_from, valid_to, temporal_text, supersedes_fact_id, embedding)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+    [
+      hypothese,
+      verificatieCriteria || null,
+      bevestigingsCriteria || null,
+      afwijzingsCriteria || null,
+      validFrom || null,
+      validTo || null,
+      temporalText || null,
+      supersedesFactId || null,
+      embeddingLiteral,
+    ]
+  );
+  return { hypothesis: rows[0], matched: false };
+}
+router.createOrReuseHypothesis = createOrReuseHypothesis;
+
+// Ook gedeeld met de reflectie-engine: evidence-linken met dezelfde
+// bestaat-checks als de HTTP-route. De engine gebruikt dit alleen voor
+// ópen hypotheses (nooit op confirmed/rejected — proposed is niet
+// confirmed), met richting bepaald door de LLM-stap.
+async function linkEvidence({ hypothesisId, episodeId, richting }) {
+  if (!EVIDENCE_DIRECTIONS.includes(richting)) {
+    throw new TypeError(`richting must be one of: ${EVIDENCE_DIRECTIONS.join(", ")}`);
+  }
+  if (!hypothesisId) throw new TypeError("hypothesisId required");
+  if (!episodeId) throw new TypeError("episodeId required");
+  const { rows: hypRows } = await pool.query("SELECT id, status FROM hypothesis WHERE id = $1", [hypothesisId]);
+  if (!hypRows[0]) throw new TypeError("hypothesis not found");
+  const { rows: episodeRows } = await pool.query("SELECT id FROM episode WHERE id = $1", [episodeId]);
+  if (!episodeRows[0]) throw new TypeError("episode not found");
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO evidence (hypothesis_id, episode_id, richting)
+       VALUES ($1, $2, $3)
+       RETURNING *`,
+      [hypothesisId, episodeId, richting],
+    );
+    return rows[0];
+  } catch (err) {
+    if (err.code === "23505") throw new TypeError("episode already linked to this hypothesis");
+    throw err;
+  }
+}
+router.linkEvidence = linkEvidence;
+
 module.exports = router;

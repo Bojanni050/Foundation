@@ -82,7 +82,7 @@ test("runHypothesisReflectionSync: voorstel wordt open hypothese + evidence, wat
   assert.strictEqual(linked.length, 2);
   assert.deepStrictEqual(linked.map((l) => l.richting).sort(), ["contradicting", "supporting"]);
   const watermark = pool.calls.find((c) => c.text.includes("INSERT INTO reflection_progress"));
-  assert.ok(watermerk, "watermerk moet gezet zijn");
+  assert.ok(watermark, "watermerk moet gezet zijn");
 });
 
 test("runHypothesisReflectionSync: contradictie koppelt GEEN supersedes (alleen update)", async () => {

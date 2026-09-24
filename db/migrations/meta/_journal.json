@@ -169,6 +169,13 @@
       "when": 1790332800002,
       "tag": "0023_add_reflection_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790332800003,
+      "tag": "0024_add_integration_config",
+      "breakpoints": true
     }
   ]
 }

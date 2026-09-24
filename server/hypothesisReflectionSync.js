@@ -49,7 +49,7 @@ function reflectorFromEnv({ fetchImpl = fetch, apiKey, baseUrl, model } = {}) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}``,
+            Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
             model,

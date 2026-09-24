@@ -2,6 +2,8 @@ const { pool } = require("./db");
 const { embed } = require("./embedding");
 const { getOrCreateInstelling } = require("./personaHelper");
 const { runIngestBridge } = require("./ingestBridge");
+const { runHindsightSync, hindsightClientFromEnv } = require("./hindsightSync");
+const { runHypothesisReflectionSync, reflectorFromEnv } = require("./hypothesisReflectionSync");
 
 async function runAutoHealEmbeddings() {
   console.log("[Auto-Heal] Running background auto-heal loop for missing embeddings...");
@@ -159,6 +161,29 @@ function startBackgroundJobs() {
   // (memory-proces), niet in het capture-proces — zie server/ingestBridge.js.
   setInterval(runIngestBridge, 60000);      // 1 minute
   setTimeout(runIngestBridge, 15000);       // 15 seconds after startup
+
+  // Reflectie-pijp naar Hindsight (zelfde VPS): mens-bevestigde feiten
+  // doorzetten naar de bank. Alleen actief als HINDSIGHT_URL en
+  // HINDSIGHT_BANK_ID in de root .env staan — zonder configuratie is er
+  // geen pijp, geen fout elke minuut. Zie server/hindsightSync.js.
+  const hindsightClient = hindsightClientFromEnv();
+  if (hindsightClient) {
+    const runPijp = () => runHindsightSync({ client: hindsightClient });
+    setInterval(runPijp, 300000);   // 5 minutes
+    setTimeout(runPijp, 20000);      // 20 seconds after startup
+  }
+
+  // Reflectie-engine: nieuwe episodes tegen actieve feiten laten beoordelen
+  // door de reflectie-LLM; stelt OPEN hypotheses voor (supersessie als
+  // update), de mens bevestigt/verwerpt via de bestaande routes. Alleen
+  // actief met REFLECTION_LLM_API_KEY + REFLECTION_LLM_BASE_URL +
+  // REFLECTION_LLM_MODEL in de root .env. Zie server/hypothesisReflectionSync.js.
+  const reflector = reflectorFromEnv();
+  if (reflector) {
+    const runEngine = () => runHypothesisReflectionSync({ reflector });
+    setInterval(runEngine, 900000);  // 15 minutes
+    setTimeout(runEngine, 30000);     // 30 seconds after startup
+  }
 
   // Screenpipe is gated behind its own subscription now and unusable.
   // PureMemory's external Go collector-agent has been replaced by native

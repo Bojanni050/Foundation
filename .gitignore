@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Secrets / local config
+.env
+.env.*
+
+# Local runtime data (bv. server/data/token.txt)
+server/data/
+
+# Logs
+*.log
+npm-debug.log*

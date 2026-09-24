@@ -2,8 +2,10 @@ const { pool } = require("./db");
 const { embed } = require("./embedding");
 const { getOrCreateInstelling } = require("./personaHelper");
 const { runIngestBridge } = require("./ingestBridge");
-const { runHindsightSync, hindsightClientFromEnv } = require("./hindsightSync");
+const { runHindsightSync } = require("./hindsightSync");
 const { runHypothesisReflectionSync, reflectorFromEnv } = require("./hypothesisReflectionSync");
+const { createHindsightClient } = require("./hindsightClient");
+const { getIntegrationConfig } = require("./integrationConfig");
 
 async function runAutoHealEmbeddings() {
   console.log("[Auto-Heal] Running background auto-heal loop for missing embeddings...");
@@ -163,27 +165,47 @@ function startBackgroundJobs() {
   setTimeout(runIngestBridge, 15000);       // 15 seconds after startup
 
   // Reflectie-pijp naar Hindsight (zelfde VPS): mens-bevestigde feiten
-  // doorzetten naar de bank. Alleen actief als HINDSIGHT_URL en
-  // HINDSIGHT_BANK_ID in de root .env staan — zonder configuratie is er
-  // geen pijp, geen fout elke minuut. Zie server/hindsightSync.js.
-  const hindsightClient = hindsightClientFromEnv();
-  if (hindsightClient) {
-    const runPijp = () => runHindsightSync({ client: hindsightClient });
-    setInterval(runPijp, 300000);   // 5 minutes
-    setTimeout(runPijp, 20000);      // 20 seconds after startup
-  }
+  // doorzetten naar de bank. Configuratie komt per run uit integration_config
+  // (UI-beheer, server/integrationConfig.js) met env-fallback — de pijp leest
+  // hem elke tick opnieuw, dus een UI-wijziging geldt zonder herstart. Zonder
+  // configuratie is er geen pijp, geen fout elke minuut. Zie
+  // server/hindsightSync.js.
+  const runPijp = async () => {
+    const config = await getIntegrationConfig();
+    if (!config.hindsightUrl || !config.hindsightBankId) return;
+    let client;
+    try {
+      client = createHindsightClient({
+        baseUrl: config.hindsightUrl,
+        bankId: config.hindsightBankId,
+      });
+    } catch (err) {
+      console.error("[HindsightSync] configuratie ongeldig, pijp slaat run over:", err.message);
+      return;
+    }
+    return runHindsightSync({ client });
+  };
+  setInterval(runPijp, 300000);   // 5 minutes
+  setTimeout(runPijp, 20000);      // 20 seconds after startup
 
   // Reflectie-engine: nieuwe episodes tegen actieve feiten laten beoordelen
   // door de reflectie-LLM; stelt OPEN hypotheses voor (supersessie als
-  // update), de mens bevestigt/verwerpt via de bestaande routes. Alleen
-  // actief met REFLECTION_LLM_API_KEY + REFLECTION_LLM_BASE_URL +
-  // REFLECTION_LLM_MODEL in de root .env. Zie server/hypothesisReflectionSync.js.
-  const reflector = reflectorFromEnv();
-  if (reflector) {
-    const runEngine = () => runHypothesisReflectionSync({ reflector });
-    setInterval(runEngine, 900000);  // 15 minutes
-    setTimeout(runEngine, 30000);     // 30 seconds after startup
-  }
+  // update), de mens bevestigt/verwerpt via de bestaande routes. Configuratie
+  // per run uit integration_config met env-fallback — zelfde reden als bij
+  // de pijp hierboven. Zie server/hypothesisReflectionSync.js.
+  const runEngine = async () => {
+    const config = await getIntegrationConfig();
+    if (!config.reflectionLlmApiKey || !config.reflectionLlmBaseUrl || !config.reflectionLlmModel) return;
+    const reflector = reflectorFromEnv({
+      apiKey: config.reflectionLlmApiKey,
+      baseUrl: config.reflectionLlmBaseUrl,
+      model: config.reflectionLlmModel,
+    });
+    if (!reflector) return;
+    return runHypothesisReflectionSync({ reflector });
+  };
+  setInterval(runEngine, 900000);  // 15 minutes
+  setTimeout(runEngine, 30000);     // 30 seconds after startup
 
   // Screenpipe is gated behind its own subscription now and unusable.
   // PureMemory's external Go collector-agent has been replaced by native

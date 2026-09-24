@@ -280,7 +280,7 @@ function shutdown() {
 
   if (memoryProcess) {
     if (process.platform === "win32") {
-      spawn("taskkill", ["/pid", memoryProcess.pid, " /f", "/t"]);
+      spawn("taskkill", ["/pid", memoryProcess.pid, "/f", "/t"]);
     } else {
       memoryProcess.kill("SIGTERM");
     }

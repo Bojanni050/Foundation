@@ -62,8 +62,8 @@ export const categorieEnum = pgEnum("categorie", ["persona", "skill", "algemeen"
 // algemeen are categories of one thing, not three things), but the physical
 // SQL table name stays "persona_kenmerk" — renaming the physical table
 // requires drizzle-kit's interactive rename-resolution prompt, which needs a
-// real TTY this environment doesn't have. The JS/TS name is what the rest of
-// the codebase should read as truth; the SQL name is a historical artifact.
+// real TTY this environment doesn't have. The JS/TS name is what the rest
+// of the codebase should read as truth; the SQL name is a historical artifact.
 export const kennis = pgTable("persona_kenmerk", {
   id: uuid("id").primaryKey().defaultRandom(),
   categorie: categorieEnum("categorie").notNull().default("persona"),
@@ -201,7 +201,6 @@ export const objectEmbedding = pgTable("object_embedding", {
 // isVerified() in epistemicPolicy.js reports — never the stored status.
 // Only an explicit confirm/reject call (a human decision) writes status.
 // --------------------------------------------------------------------------
-
 export const hypothesisStatusEnum = pgEnum("hypothesis_status", [
   "open",
   "confirmed",
@@ -238,7 +237,6 @@ export const knowledgeGapStatusEnum = pgEnum("knowledge_gap_status", [
   "known_absent",
   "resolved",
 ]);
-
 export const hypothesis = pgTable("hypothesis", {
   id: uuid("id").primaryKey().defaultRandom(),
   hypothese: text("hypothese").notNull(),
@@ -394,12 +392,11 @@ export const knowledgeGap = pgTable("knowledge_gap", {
 //
 // provider_conversation_id (afgeleid via providerConversationId.js, niet
 // client-aanbiedbaar) maakt cross-kanaal idempotentie mogelijk: dezelfde
-// conversatie die via de extension én via de bulk-import binnenkomt, of een
+// conversatie die via de extensie én via de bulk-import binnenkomt, of een
 // import die opnieuw draait nadat de conversatie groeide, resolveert naar
 // dezelfde rij (ON CONFLICT DO UPDATE) in plaats van een duplicaat. Geen FK
 // op een bron-object-id: objecten leven (nog) in IndexedDB bij de clients.
 // --------------------------------------------------------------------------
-
 export const ingestObject = pgTable("ingest_object", {
   id: uuid("id").primaryKey().defaultRandom(),
   // "chat" | "capture" | "document" | "diary" — vastgezet door de route,
@@ -452,3 +449,20 @@ export const consolidationProgress = pgTable("consolidation_progress", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Watermerk van de reflectie-pijp: tot en met welke fact.created_at de
+// feiten al naar Hindsight's bank zijn gestuurd (server/hindsightSync.js
+// — zelfde patroon als consolidation_progress hierboven).
+export const hindsightProgress = pgTable("hindsight_progress", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  lastFactCreatedAt: timestamp("last_fact_created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Watermerk van de reflectie-engine: tot en met welke episode.captured_at de
+// nieuwe observaties al tegen actieve feiten zijn beoordeeld
+// (server/hypothesisReflectionSync.js — zelfde patroon als hierboven).
+export const reflectionProgress = pgTable("reflection_progress", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  lastEpisodeCapturedAt: timestamp("last_episode_captured_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

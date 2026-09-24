@@ -31,10 +31,12 @@ const EMBEDDING_SIMILARITY_BAR = 0.55;
 
 // Geen reflectie-LLM geconfigureerd → geen engine. Zelfde patroon als
 // hindsightClientFromEnv: bewust geen fout elke run, gewoon uit.
-function reflectorFromEnv({ fetchImpl = fetch } = {}) {
-  const apiKey = process.env.REFLECTION_LLM_API_KEY;
-  const baseUrl = process.env.REFLECTION_LLM_BASE_URL;
-  const model = process.env.REFLECTION_LLM_MODEL;
+// Config kan expliciet meegegeven worden (UI-beheer, zie
+// server/integrationConfig.js) — zonder argumenten geldt de env zoals voorheen.
+function reflectorFromEnv({ fetchImpl = fetch, apiKey, baseUrl, model } = {}) {
+  apiKey = apiKey || process.env.REFLECTION_LLM_API_KEY;
+  baseUrl = baseUrl || process.env.REFLECTION_LLM_BASE_URL;
+  model = model || process.env.REFLECTION_LLM_MODEL;
   if (!apiKey || !baseUrl || !model) return null;
   const root = String(baseUrl).replace(/\/+$/, "");
   return {
@@ -47,7 +49,7 @@ function reflectorFromEnv({ fetchImpl = fetch } = {}) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${apiKey}``,
           },
           body: JSON.stringify({
             model,

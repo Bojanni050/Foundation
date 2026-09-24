@@ -155,6 +155,27 @@
       "when": 1790332800000,
       "tag": "0021_add_consolidation_checkpoint",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790332800001,
+      "tag": "0022_add_hindsight_progress",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790332800002,
+      "tag": "0023_add_reflection_progress",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790332800003,
+      "tag": "0024_add_integration_config",
+      "breakpoints": true
     }
   ]
 }

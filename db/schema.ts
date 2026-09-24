@@ -452,3 +452,35 @@ export const consolidationProgress = pgTable("consolidation_progress", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Watermerk van de reflectie-pijp: tot en met welke fact.created_at de
+// feiten al naar Hindsight's bank zijn gestuurd (server/hindsightSync.js
+// — zelfde patroon als consolidation_progress hierboven).
+export const hindsightProgress = pgTable("hindsight_progress", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  lastFactCreatedAt: timestamp("last_fact_created_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Watermerk van de reflectie-engine: tot en met welke episode.captured_at de
+// nieuwe observaties al tegen actieve feiten zijn beoordeeld
+// (server/hypothesisReflectionSync.js — zelfde patroon als hierboven).
+export const reflectionProgress = pgTable("reflection_progress", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  lastEpisodeCapturedAt: timestamp("last_episode_captured_at", { withTimezone: true }).notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// UI-beheerbare configuratie voor de twee achtergrondintegraties (Hindsight-
+// pijp en reflectie-LLM). Singleton zoals persona_instelling: één rij, per
+// veld nullable — een leeg veld valt terug op de root-.env (zie
+// server/integrationConfig.js), zodat env-configuratie blijft werken als
+// backward-compatibel startpunt en de UI alleen override wat je invult.
+export const integrationConfig = pgTable("integration_config", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  hindsightUrl: text("hindsight_url"),
+  hindsightBankId: text("hindsight_bank_id"),
+  reflectionLlmBaseUrl: text("reflection_llm_base_url"),
+  reflectionLlmModel: text("reflection_llm_model"),
+  reflectionLlmApiKey: text("reflection_llm_api_key"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

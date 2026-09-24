@@ -153,6 +153,9 @@ app.use(express.json({ limit: "10mb" }));
 // get first crack at matching; settingsRouter's own paths (token, status,
 // embedding-model, seed) don't overlap with them and fall through untouched.
 app.use("/api/settings/capture-activity", proxyToMemory);
+// UI-beheer van de Hindsight-pijp en reflectie-engine (lees/schrijf/nu-
+// uitvoeren) — lives in het memory-proces, waar de jobs zelf ook draaien.
+app.use("/api/settings/integrations", proxyToMemory);
 // Ingestie/capture-logdashboard: data-endpoint (routes/ingestLogs.js) en
 // de statische pagina (public/index.html, op /ui). De pagina vraagt bij
 // eerste gebruik om de bearer-token en bewaart die in localStorage —

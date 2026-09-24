@@ -99,9 +99,9 @@
     </div>
     <div class="card">
       <h2>LLM / provider</h2>
-      <p class="desc">Foundation zelf draait geen cloud-LLM: embeddings zijn lokaal, en alle epistemiek (hypotheses, promoties) gebeurt door de mens — bewust. LLM-integraties (Hindsight op de VPS, eventueel een reasoner) configureren hun eigen provider buiten deze server; zodra Foundation een eigen reasoner-knop krijgt, komt die hier.</p>
-      <div class="kv"><b>Hindsight:</b> draait zelfstandig op deze VPS — configuratie in Hindsight zelf, geen instelling hier.</div>
-      <div class="kv"><b>Reflectie-pijp:</b> nog niet aangesloten — staat op de roadmap.</div>
+      <p class="desc">Foundation zelf draait geen cloud-LLM: embeddings zijn lokaal, en alle epistemiek (hypotheses, promoties) gebeurt door de mens — bewust. De reflectie-engine mag uitsluitend OPEN hypotheses vóórstellen; bevestigen en verwerpen blijft de mens.</p>
+      <div class="kv"><b>Reflectie-engine:</b> aangesloten — nieuwe episodes worden elke 15 min tegen actieve feiten beoordeeld (REFLECTION_LLM_API_KEY + REFLECTION_LLM_BASE_URL + REFLECTION_LLM_MODEL in de root .env; zonder die variabelen blijft de engine uit). Voorstellen verschijnen als open hypotheses in de Hypotheses-lijst.</div>
+      <div class="kv"><b>Hindsight:</b> reflectie-pijp aangesloten — mens-bevestigde feiten gaan elke 5 minuten naar de bank (HINDSIGHT_URL + HINDSIGHT_BANK_ID in de root .env; zonder die variabelen blijft de pijp uit).</div>
     </div>
   </section>
 
@@ -219,7 +219,7 @@ async function loadBronnen() {
       h += '<div class="evt"><div style="flex:1"><b>' + esc(d.naam) + "</b><div class='kv'><code>POST " + esc(d.endpoint) + "</code></div></div>" +
         "<div>" + pill((byType[type] || 0) + " binnen", "mut") + "</div></div>";
     }
-    h += '<div class="evt"><div style="flex:1"><b>Legacy-inbox (app-import)</b><div class="kv"><code>POST /api/objects/import</code></div></div>' +
+    h += '<div class="evt"><div style="flex:1"><b>Legacy-inbox (app-import)</b><div class="kv"><code>POST /api/objects/import</code></div></div>" +
       "<div>" + pill((logs.inbox || []).length + " in wachtrij", "mut") + "</div></div>";
     document.getElementById("bronnenList").innerHTML = h;
   } catch (e) { document.getElementById("bronnenList").innerHTML = '<div class="empty">laden mislukt</div>'; }

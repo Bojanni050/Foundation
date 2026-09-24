@@ -13,10 +13,8 @@
 # tailnet; poort 22 blijft gesloten voor het publieke internet.
 # Op de VPS moet /opt/Foundation/.env bestaan met o.a. DATABASE_URL;
 # de migratiestap sourceert dat bestand expliciet.
-#
 # De deploy is bewust simpel en veilig: pull -> deps -> migraties -> pm2 restart.
 # Hij draait NIET op pull-requests, alleen op main.
-
 name: Deploy to VPS
 
 on:
@@ -50,11 +48,14 @@ jobs:
           script: |
             set -e
             cd /opt/Foundation
+
             echo "==> Git pull"
             git fetch origin
             git reset --hard origin/main
+
             echo "==> Dependencies (server)"
             cd server && npm install --no-audit --no-fund && cd ..
+
             echo "==> Migraties (drizzle-kit)"
             cd db && npm install --no-audit --no-fund
             set -a
@@ -62,9 +63,11 @@ jobs:
             set +a
             npx drizzle-kit migrate
             cd ..
+
             echo "==> Herstart processen"
             pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
             pm2 save
+
             echo "==> Smoke-check"
             # Bind-host en -port komen uit dezelfde .env als de server zelf
             # laadt (server/index.js: CHRONICLE_HOST/CHRONICLE_PORT, default

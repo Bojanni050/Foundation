@@ -71,18 +71,22 @@ chronicle.example.com {
 
 Foundation en Hindsight draaien op dezelfde VPS. De reflectie-pijp stuurt
 mens-bevestigde feiten (tabel `fact`) door naar Hindsight's bank, met
-provenance in de metadata. Aan/uit staat in de root `.env` — geen
-server-side instelling, bewust:
+provenance in de metadata. Configuratie staat in de root `.env` (onderstaand)
+of — sinds migratie 0024 — in de UI: Instellingen → Embedding & AI →
+Hindsight-pijp. De UI schrijft naar de `integration_config`-tabel en leest
+per run de effectieve waarde (DB-veld wint, anders valt de pijp terug op
+de env). Een env-configuratie blijft dus werken; de UI overschrijft alleen
+wat je invult.
 
 ```
 HINDSIGHT_URL=http://127.0.0.1:PORT
 HINDSIGHT_BANK_ID=jouw-bank-id
 ```
 
-Zonder die twee variabelen start de pijp niet en blijft alles zoals het
-was. Het watermerk (`hindsight_progress`, migratie 0022) zorgt dat elk
-feit exact één keer aankomt; faalt Hindsight halverwege een batch, dan
-pakt de volgende run dezelfde feiten opnieuw. Zie `server/hindsightSync.js`.
+Zonder configuratie start de pijp niet en blijft alles zoals het was. Het
+watermerk (`hindsight_progress`, migratie 0022) zorgt dat elk feit exact
+één keer aankomt; faalt Hindsight halverwege een batch, dan pakt de
+volgende run dezelfde feiten opnieuw. Zie `server/hindsightSync.js`.
 
 ## 3c. Reflectie-engine (optioneel)
 
@@ -92,8 +96,10 @@ voor (een "update"-voorstel draagt `supersedesFactId`; pas bij menselijke
 bevestiging wordt de supersessie echt). Bevestigen/verwerpen blijft de
 uitsluitende daad van de mens via de bestaande routes.
 
-Configuratie in de root `.env` — een OpenAI-compatibele chat-completions
-endpoint (Mistral, OpenAI, LM Studio, ...):
+Configuratie in de root `.env` of in de UI (Instellingen → Embedding &
+AI → Reflectie-engine; zelfde DB-over-env-regel als de pijp hierboven) —
+een OpenAI-compatibele chat-completions endpoint (Mistral, OpenAI,
+LM Studio, ...):
 
 ```
 REFLECTION_LLM_API_KEY=<sleutel>
@@ -101,7 +107,8 @@ REFLECTION_LLM_BASE_URL=http://127.0.0.1:PORT/v1
 REFLECTION_LLM_MODEL=<modelnaam>
 ```
 
-Zonder alle drie de variabelen start de engine niet. Watermerk:
+Zonder alle drie de variabelen start de engine niet. De API-key wordt nooit
+in de UI teruggestuurd — alleen overschrijven. Watermerk:
 `reflection_progress` (migratie 0023) — bij een LLM-fout blijft het
 watermerk staan, zodat geen enkele observatie onbeoordeeld verdwijnt.
 

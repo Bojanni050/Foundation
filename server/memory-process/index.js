@@ -72,6 +72,13 @@ app.get("/api/settings/capture-activity", (_req, res) => {
   res.json({ entries: getRecentCaptureEvents() });
 });
 
+// GET/PATCH /api/settings/integrations + POST .../run — UI-beheer van de
+// Hindsight-pijp en reflectie-engine. Hier gemount, niet in het
+// capture-proces: de jobs en de effective-config leven in dit proces, dus
+// een handmatige run-route hoeft niets te crossen. Bereikbaar via de
+// bestaande /api/settings/integrations-proxy in server/index.js.
+app.use("/api/settings/integrations", require("./integrationRoutes"));
+
 // Start background schedulers (consolidator, auto-heal). If either hangs or
 // crashes, only this process is affected — Chronicle's capture endpoints
 // (inbox, attachments, connectors) keep responding regardless, since they

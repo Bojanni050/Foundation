@@ -1,7 +1,7 @@
 // Ingestie Gateway — de server-side ingest-route. Elke capture-bron komt hier
 // binnen via een typeward entry-point (zie ../ingestPolicy.js):
 //
-//   POST /api/ingest/chat      — AI-chats (extensie, bulk-import, ...)
+//   POST /api/ingest/chat      — AI-chats (extension, bulk-import, ...)
 //   POST /api/ingest/capture   — desktop-capture (Capture RS)
 //   POST /api/ingest/document  — expliciet gedeelde documenten
 //   POST /api/ingest/diary     — audio/video-log (Diary)

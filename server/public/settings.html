@@ -64,7 +64,7 @@
     <button data-tab="toegang" onclick="tab('toegang')">Toegang</button>
   </nav>
 
-  <!-- ————— Systeem ————— -->
+  <!-- ——— Systeem ——— -->
   <section id="tab-status">
     <div class="grid2">
       <div class="card"><h2>Database</h2><div id="stDb"><div class="empty">Laden…</div></div></div>
@@ -76,7 +76,7 @@
     </div>
   </section>
 
-  <!-- ————— Bronnen ————— -->
+  <!-- ——— Bronnen ——— -->
   <section id="tab-bronnen" style="display:none">
     <div class="card">
       <h2>Ingestie-bronnen</h2>
@@ -85,7 +85,7 @@
     </div>
   </section>
 
-  <!-- ————— Embedding & AI ————— -->
+  <!-- ——— Embedding & AI ——— -->
   <section id="tab-model" style="display:none">
     <div class="card">
       <h2>Embedding-model</h2>
@@ -100,12 +100,35 @@
     <div class="card">
       <h2>LLM / provider</h2>
       <p class="desc">Foundation zelf draait geen cloud-LLM: embeddings zijn lokaal, en alle epistemiek (hypotheses, promoties) gebeurt door de mens — bewust. De reflectie-engine mag uitsluitend OPEN hypotheses vóórstellen; bevestigen en verwerpen blijft de mens.</p>
-      <div class="kv"><b>Reflectie-engine:</b> aangesloten — nieuwe episodes worden elke 15 min tegen actieve feiten beoordeeld (REFLECTION_LLM_API_KEY + REFLECTION_LLM_BASE_URL + REFLECTION_LLM_MODEL in de root .env; zonder die variabelen blijft de engine uit). Voorstellen verschijnen als open hypotheses in de Hypotheses-lijst.</div>
-      <div class="kv"><b>Hindsight:</b> reflectie-pijp aangesloten — mens-bevestigde feiten gaan elke 5 minuten naar de bank (HINDSIGHT_URL + HINDSIGHT_BANK_ID in de root .env; zonder die variabelen blijft de pijp uit).</div>
+      <div class="kv"><b>Reflectie-engine:</b> beoordeelt elke 15 min nieuwe episodes tegen actieve feiten en stelt OPEN hypotheses voor — bevestigen/verwerpen blijft de mens. Configuratie hieronder of via de root .env.</div>
+      <div class="kv"><b>Hindsight:</b> reflectie-pijp stuurt mens-bevestigde feiten elke 5 minuten naar de bank. Configuratie hieronder of via de root .env.</div>
+    </div>
+    <div class="card">
+      <h2>Hindsight-pijp</h2>
+      <p class="desc">Velden leeg laten = de root-.env geldt; invullen overschrijft die (opgeslagen in de database, geldt zonder herstart).</p>
+      <div class="kv" id="hsStatus"></div>
+      <div class="row"><input id="hsUrl" type="text" placeholder="HINDSIGHT_URL (bijv. http://127.0.0.1:8787)" style="flex:1"></div>
+      <div class="row"><input id="hsBank" type="text" placeholder="HINDSIGHT_BANK_ID" style="flex:1"></div>
+      <div class="row">
+        <button class="primary" onclick="saveIntegratie('hindsight')">Opslaan</button>
+        <button onclick="runIntegratie('hindsight')">Nu uitvoeren</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Reflectie-engine</h2>
+      <p class="desc">OpenAI-compatibele chat-completions endpoint (Mistral, OpenAI, LM Studio, Ollama, ...). Velden leeg laten = de root-.env geldt.</p>
+      <div class="kv" id="reStatus"></div>
+      <div class="row"><input id="reBase" type="text" placeholder="REFLECTION_LLM_BASE_URL (bijv. https://api.mistral.ai/v1)" style="flex:1"></div>
+      <div class="row"><input id="reModel" type="text" placeholder="REFLECTION_LLM_MODEL (bijv. mistral-small-latest)" style="flex:1"></div>
+      <div class="row"><input id="reKey" type="password" placeholder="API-key (wordt niet terugggegeven, alleen overschrijven)" style="flex:1"></div>
+      <div class="row">
+        <button class="primary" onclick="saveIntegratie('reflection')">Opslaan</button>
+        <button onclick="runIntegratie('reflection')">Nu uitvoeren</button>
+      </div>
     </div>
   </section>
 
-  <!-- ————— Activiteit ————— -->
+  <!-- ——— Activiteit ——— -->
   <section id="tab-activiteit" style="display:none">
     <div class="card">
       <h2>Capture-activiteit</h2>
@@ -114,7 +137,7 @@
     </div>
   </section>
 
-  <!-- ————— Toegang ————— -->
+  <!-- ——— Toegang ——— -->
   <section id="tab-toegang" style="display:none">
     <div class="card">
       <h2>Bearer-token</h2>
@@ -271,7 +294,63 @@ async function loadToken() {
   } catch (e) {}
 }
 
-function loadAll() { loadStatus(); loadBronnen(); loadModel(); loadEvents(); loadToken(); }
+async function loadIntegraties() {
+  try {
+    const r = await fetch("/api/settings/integrations", { headers: { Authorization: "Bearer " + TOKEN } });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    const c = data.config || {}, s = data.status || {};
+    document.getElementById("hsUrl").value = c.hindsightUrl || "";
+    document.getElementById("hsBank").value = c.hindsightBankId || "";
+    document.getElementById("reBase").value = c.reflectionLlmBaseUrl || "";
+    document.getElementById("reModel").value = c.reflectionLlmModel || "";
+    document.getElementById("reKey").value = "";
+    document.getElementById("hsStatus").innerHTML =
+      pill(s.hindsight?.active ? "actief" : "uit (niet geconfigureerd)", s.hindsight?.active ? "ok" : "mut") +
+      (s.hindsight?.lastRun ? " <b>laatste run:</b> " + esc(fmtT(s.hindsight.lastRun)) : "");
+    document.getElementById("reStatus").innerHTML =
+      pill(s.reflection?.active ? "actief" : "uit (niet geconfigureerd)", s.reflection?.active ? "ok" : "mut") +
+      (c.reflectionLlmApiKeySet ? " <b>API-key:</b> ingesteld" : "") +
+      (s.reflection?.lastRun ? " <b>laatste run:</b> " + esc(fmtT(s.reflection.lastRun)) : "");
+  } catch (e) {
+    document.getElementById("hsStatus").innerHTML = '<div class="empty">laden mislukt</div>';
+    document.getElementById("reStatus").innerHTML = '<div class="empty">laden mislukt</div>';
+  }
+}
+
+async function saveIntegratie(which) {
+  const body = which === "hindsight"
+    ? { hindsightUrl: document.getElementById("hsUrl").value.trim(), hindsightBankId: document.getElementById("hsBank").value.trim() }
+    : {
+        reflectionLlmBaseUrl: document.getElementById("reBase").value.trim(),
+        reflectionLlmModel: document.getElementById("reModel").value.trim(),
+        ...(document.getElementById("reKey").value.trim() ? { reflectionLlmApiKey: document.getElementById("reKey").value.trim() } : {}),
+      };
+  try {
+    const r = await fetch("/api/settings/integrations", {
+      method: "PATCH",
+      headers: { Authorization: "Bearer " + TOKEN, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(r => r.json());
+    if (r.error) throw new Error(r.error);
+    toast("Integratie opgeslagen — geldt vanaf de volgende run");
+    await loadIntegraties();
+  } catch (e) { toast("Mislukt: " + e.message); }
+}
+
+async function runIntegratie(which) {
+  try {
+    const r = await fetch("/api/settings/integrations/" + which + "/run", {
+      method: "POST",
+      headers: { Authorization: "Bearer " + TOKEN },
+    }).then(r => r.json());
+    if (r.error) throw new Error(r.error);
+    toast(which === "hindsight" ? "Pijp uitgevoerd" : "Engine uitgevoerd");
+    await loadIntegraties();
+  } catch (e) { toast("Mislukt: " + e.message); }
+}
+
+function loadAll() { loadStatus(); loadBronnen(); loadModel(); loadEvents(); loadToken(); loadIntegraties(); }
 
 if (!TOKEN) document.getElementById("gate").style.display = "flex"; else loadAll();
 setInterval(() => { loadStatus(); loadEvents(); }, 15000);

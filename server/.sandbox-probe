@@ -1,0 +1,7 @@
+const { pool: dbPool } = require("./db");
+const { createHindsightClient } = require("./hindsightClient");
+
+const CHECKPOINT_ID = "00000000-0000-0000-0000-000000000001";
+const BATCH_LIMIT = 25;
+
+module.exports = { CHECKPOINT_ID };

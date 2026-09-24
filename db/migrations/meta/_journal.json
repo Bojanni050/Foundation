@@ -155,6 +155,13 @@
       "when": 1790332800000,
       "tag": "0021_add_consolidation_checkpoint",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1790332800001,
+      "tag": "0022_add_hindsight_progress",
+      "breakpoints": true
     }
   ]
 }

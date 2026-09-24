@@ -1,7 +1,7 @@
 // Ingestie Gateway — de server-side ingest-route. Elke capture-bron komt hier
 // binnen via een typeward entry-point (zie ../ingestPolicy.js):
 //
-//   POST /api/ingest/chat      — AI-chats (extension, bulk-import, ...)
+//   POST /api/ingest/chat      — AI-chats (extensie, bulk-import, ...)
 //   POST /api/ingest/capture   — desktop-capture (Capture RS)
 //   POST /api/ingest/document  — expliciet gedeelde documenten
 //   POST /api/ingest/diary     — audio/video-log (Diary)
@@ -23,6 +23,7 @@ const { requireAuth } = require("../auth");
 const { contentHash } = require("../contentHash");
 const { deriveProviderConversationId } = require("../providerConversationId");
 const { normalizeIngestRecord } = require("../ingestPolicy");
+const { notifyCaptureActivity } = require("../captureActivityNotifier");
 
 const router = express.Router();
 
@@ -74,6 +75,14 @@ async function acceptIngest(objectType, req, res) {
       providerConversationId,
     ]);
     const row = rows[0];
+    // Visibility-only hook: mirrors every successful ingest into the
+    // memory-process's activity ring buffer (Instellingen → Activiteit).
+    // Fire-and-forget — a down memory-process never fails the ingest.
+    notifyCaptureActivity({
+      title: r.title ?? null,
+      sourceProvider: r.sourceProvider ?? null,
+      type: objectType,
+    });
     return res.status(row.inserted_new ? 201 : 200).json({
       success: true,
       id: row.id,

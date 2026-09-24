@@ -13,8 +13,10 @@
 # tailnet; poort 22 blijft gesloten voor het publieke internet.
 # Op de VPS moet /opt/Foundation/.env bestaan met o.a. DATABASE_URL;
 # de migratiestap sourceert dat bestand expliciet.
+#
 # De deploy is bewust simpel en veilig: pull -> deps -> migraties -> pm2 restart.
 # Hij draait NIET op pull-requests, alleen op main.
+
 name: Deploy to VPS
 
 on:
@@ -48,14 +50,11 @@ jobs:
           script: |
             set -e
             cd /opt/Foundation
-
             echo "==> Git pull"
             git fetch origin
             git reset --hard origin/main
-
             echo "==> Dependencies (server)"
             cd server && npm install --no-audit --no-fund && cd ..
-
             echo "==> Migraties (drizzle-kit)"
             cd db && npm install --no-audit --no-fund
             set -a
@@ -63,18 +62,39 @@ jobs:
             set +a
             npx drizzle-kit migrate
             cd ..
-
             echo "==> Herstart processen"
             pm2 restart ecosystem.config.js --update-env || pm2 start ecosystem.config.js
             pm2 save
-
             echo "==> Smoke-check"
-            sleep 3
+            # Bind-host en -port komen uit dezelfde .env als de server zelf
+            # laadt (server/index.js: CHRONICLE_HOST/CHRONICLE_PORT, default
+            # 127.0.0.1:4577). Tegen het verkeerde adres pollen geeft
+            # curl exit 7 (connection refused) ook al draait de app prima —
+            # vandaar dat de check hier de werkelijke binding volgt.
+            HOST=$(grep -E '^CHRONICLE_HOST=' /opt/Foundation/.env | tail -1 | cut -d= -f2-)
+            PORT=$(grep -E '^CHRONICLE_PORT=' /opt/Foundation/.env | tail -1 | cut -d= -f2-)
+            HOST=${HOST:-127.0.0.1}
+            PORT=${PORT:-4577}
+            echo "Smoke-check against http://${HOST}:${PORT}"
             TOKEN=$(cat server/data/token.txt)
-            if curl -sf http://127.0.0.1:4577/api/settings/status -H "Authorization: Bearer $TOKEN" > /dev/null; then
-              echo "API reageert - deploy OK"
-            else
-              echo "API reageert NIET"
-              pm2 logs chronicle --lines 30 --nostream
-              exit 1
-            fi
+
+            # Readiness-loop in plaats van een vaste sleep: de memory-process
+            # laadt een ~1.5-2GB ONNX-model vóórdat sidecar-routes antwoorden,
+            # dus drie seconden is ruim onvoldoende na een koude start.
+            for attempt in $(seq 1 30); do
+              if curl -sf --connect-timeout 2 --max-time 5 \
+                "http://${HOST}:${PORT}/api/settings/status" \
+                -H "Authorization: Bearer $TOKEN" > /dev/null; then
+                echo "API reageert - deploy OK"
+                exit 0
+              fi
+              echo "API nog niet beschikbaar; poging ${attempt}/30"
+              sleep 2
+            done
+
+            echo "API reageert NIET"
+            echo "==> PM2 status"
+            pm2 status
+            echo "==> PM2 logs"
+            pm2 logs chronicle --lines 100 --nostream
+            exit 1

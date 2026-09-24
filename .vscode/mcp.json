@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "foundation": {
+      "command": "node",
+      "args": ["${workspaceFolder}/server/mcpServer.js"],
+      "env": {
+        "NODE_ENV": "production",
+        "CHRONICLE_API_URL": "http://127.0.0.1:4577"
+      }
+    }
+  }
+}

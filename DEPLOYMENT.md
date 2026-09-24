@@ -67,6 +67,44 @@ chronicle.example.com {
 }
 ```
 
+## 3b. Reflectie-pijp naar Hindsight (optioneel)
+
+Foundation en Hindsight draaien op dezelfde VPS. De reflectie-pijp stuurt
+mens-bevestigde feiten (tabel `fact`) door naar Hindsight's bank, met
+provenance in de metadata. Aan/uit staat in de root `.env` — geen
+server-side instelling, bewust:
+
+```
+HINDSIGHT_URL=http://127.0.0.1:PORT
+HINDSIGHT_BANK_ID=jouw-bank-id
+```
+
+Zonder die twee variabelen start de pijp niet en blijft alles zoals het
+was. Het watermerk (`hindsight_progress`, migratie 0022) zorgt dat elk
+feit exact één keer aankomt; faalt Hindsight halverwege een batch, dan
+pakt de volgende run dezelfde feiten opnieuw. Zie `server/hindsightSync.js`.
+
+## 3c. Reflectie-engine (optioneel)
+
+De engine uit `server/hypothesisReflectionSync.js` beoordeelt elke 15
+minuten nieuwe episodes tegen actieve feiten en stelt OPEN hypotheses
+voor (een "update"-voorstel draagt `supersedesFactId`; pas bij menselijke
+bevestiging wordt de supersessie echt). Bevestigen/verwerpen blijft de
+uitsluitende daad van de mens via de bestaande routes.
+
+Configuratie in de root `.env` — een OpenAI-compatibele chat-completions
+endpoint (Mistral, OpenAI, LM Studio, ...):
+
+```
+REFLECTION_LLM_API_KEY=<sleutel>
+REFLECTION_LLM_BASE_URL=http://127.0.0.1:PORT/v1
+REFLECTION_LLM_MODEL=<modelnaam>
+```
+
+Zonder alle drie de variabelen start de engine niet. Watermerk:
+`reflection_progress` (migratie 0023) — bij een LLM-fout blijft het
+watermerk staan, zodat geen enkele observatie onbeoordeeld verdwijnt.
+
 ## 4. Token
 
 De token wordt bij de eerste start automatisch gegenereerd

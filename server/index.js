@@ -21,6 +21,7 @@ const path = require("path");
 const { Readable } = require("stream");
 const { TOKEN, requireAuth } = require("./auth");
 const { readInbox, writeInbox, pushToInbox } = require("./inboxStore");
+const { notifyCaptureActivity } = require("./captureActivityNotifier");
 
 const settingsRouter = require("./routes/settings");
 const chatgptImportRouter = require("./routes/chatgptImport");
@@ -225,6 +226,15 @@ app.get("/api/inbox", (_req, res) => {
 app.post("/api/inbox/claim", (_req, res) => {
   const items = readInbox();
   writeInbox([]);
+  // Visibility-only mirror into the memory-process's activity ring buffer
+  // (Instellingen → Activiteit) — one event per claimed item, fire-and-forget.
+  for (const item of items) {
+    notifyCaptureActivity({
+      title: item.title,
+      sourceProvider: item.sourceProvider,
+      type: item.type,
+    });
+  }
   res.json(items);
 });
 

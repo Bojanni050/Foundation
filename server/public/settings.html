@@ -64,7 +64,7 @@
     <button data-tab="toegang" onclick="tab('toegang')">Toegang</button>
   </nav>
 
-  <!-- ——— Systeem ——— -->
+  <!-- ———— Systeem ———— -->
   <section id="tab-status">
     <div class="grid2">
       <div class="card"><h2>Database</h2><div id="stDb"><div class="empty">Laden…</div></div></div>
@@ -76,7 +76,7 @@
     </div>
   </section>
 
-  <!-- ——— Bronnen ——— -->
+  <!-- ———— Bronnen ———— -->
   <section id="tab-bronnen" style="display:none">
     <div class="card">
       <h2>Ingestie-bronnen</h2>
@@ -85,7 +85,7 @@
     </div>
   </section>
 
-  <!-- ——— Embedding & AI ——— -->
+  <!-- ———— Embedding & AI ———— -->
   <section id="tab-model" style="display:none">
     <div class="card">
       <h2>Embedding-model</h2>
@@ -128,7 +128,7 @@
     </div>
   </section>
 
-  <!-- ——— Activiteit ——— -->
+  <!-- ———— Activiteit ———— -->
   <section id="tab-activiteit" style="display:none">
     <div class="card">
       <h2>Capture-activiteit</h2>
@@ -137,7 +137,7 @@
     </div>
   </section>
 
-  <!-- ——— Toegang ——— -->
+  <!-- ———— Toegang ———— -->
   <section id="tab-toegang" style="display:none">
     <div class="card">
       <h2>Bearer-token</h2>
@@ -327,12 +327,13 @@ async function saveIntegratie(which) {
         ...(document.getElementById("reKey").value.trim() ? { reflectionLlmApiKey: document.getElementById("reKey").value.trim() } : {}),
       };
   try {
-    const r = await fetch("/api/settings/integrations", {
+    const resp = await fetch("/api/settings/integrations", {
       method: "PATCH",
       headers: { Authorization: "Bearer " + TOKEN, "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    }).then(r => r.json());
-    if (r.error) throw new Error(r.error);
+    });
+    const r = await resp.json().catch(() => null);
+    if (!resp.ok) throw new Error(r?.error || "HTTP " + resp.status);
     toast("Integratie opgeslagen — geldt vanaf de volgende run");
     await loadIntegraties();
   } catch (e) { toast("Mislukt: " + e.message); }
@@ -340,11 +341,12 @@ async function saveIntegratie(which) {
 
 async function runIntegratie(which) {
   try {
-    const r = await fetch("/api/settings/integrations/" + which + "/run", {
+    const resp = await fetch("/api/settings/integrations/" + which + "/run", {
       method: "POST",
       headers: { Authorization: "Bearer " + TOKEN },
-    }).then(r => r.json());
-    if (r.error) throw new Error(r.error);
+    });
+    const r = await resp.json().catch(() => null);
+    if (!resp.ok) throw new Error(r?.error || "HTTP " + resp.status);
     toast(which === "hindsight" ? "Pijp uitgevoerd" : "Engine uitgevoerd");
     await loadIntegraties();
   } catch (e) { toast("Mislukt: " + e.message); }

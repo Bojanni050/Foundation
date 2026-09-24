@@ -280,7 +280,6 @@ startMemoryProcess();
 
 const server = app.listen(PORT, HOST, () => {
   console.log(`\n  Chronicle local API running at http://${HOST}:${PORT}`);
-  console.log(`  (paste this token into the extension popup & the app Settings)\n`);
   console.log(`  Token: ${TOKEN}`);
   console.log(`  (paste this token into the extension popup & the app Settings)\n`);
 });

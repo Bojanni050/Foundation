@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "foundation": {
+      "type": "local",
+      "command": ["node", "server/mcpServer.js"],
+      "environment": {
+        "CHRONICLE_API_URL": "http://127.0.0.1:4577",
+        "CHRONICLE_TOKEN": "{env:CHRONICLE_TOKEN}"
+      },
+      "enabled": true
+    }
+  }
+}

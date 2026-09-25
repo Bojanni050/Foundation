@@ -21,13 +21,22 @@ const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio
 const z = require("zod");
 
 const API_URL = process.env.CHRONICLE_API_URL || "http://127.0.0.1:4577";
+// De Ingestie Gateway (en het /ui-dashboard) eisen een bearer-token (auth.js,
+// server/data/token.txt). /api/memory op de memory-process is loopback-only en
+// heeft geen aparte token nodig, maar een meegestuurde token is nooit fout.
+const CHRONICLE_TOKEN = process.env.CHRONICLE_TOKEN || "";
 
 async function apiRequest(basePath, path, options = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(CHRONICLE_TOKEN ? { Authorization: `Bearer ${CHRONICLE_TOKEN}` } : {}),
+    ...(options.headers || {}),
+  };
   let response;
   try {
     response = await fetch(`${API_URL}${basePath}${path}`, {
       ...options,
-      headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+      headers,
     });
   } catch (err) {
     throw new Error(`Chronicle server unreachable at ${API_URL} — is it running? (${err.message})`);

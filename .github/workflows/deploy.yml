@@ -13,8 +13,10 @@
 # tailnet; poort 22 blijft gesloten voor het publieke internet.
 # Op de VPS moet /opt/Foundation/.env bestaan met o.a. DATABASE_URL;
 # de migratiestap sourceert dat bestand expliciet.
-# De deploy is bewust simpel en veilig: pull -> deps -> migraties -> pm2 restart.
-# Hij draait NIET op pull-requests, alleen op main.
+# De deploy is bewust simpel en veilig: eerst de VOLLEDIGE TESTSUITE op de
+# runner (faalt die, dan wordt er niets gerold), daarna pull -> deps ->
+# migraties -> pm2 restart. Hij draait NIET op pull-requests — daar draait
+# test.yml dezelfde suite; dit bestand draait alleen op main.
 name: Deploy to VPS
 
 on:
@@ -30,6 +32,22 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test-poort — volledige suite vóór elke roll
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: npm install (server)
+        run: npm install --no-audit --no-fund
+        working-directory: server
+      - name: npm test (server)
+        run: npm test
+        working-directory: server
+
       - name: Join tailnet als ephemeral CI-node
         uses: tailscale/github-action@v4
         with:

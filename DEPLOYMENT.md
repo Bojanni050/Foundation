@@ -7,8 +7,11 @@ en het memory-proces (poort 4578, door server/index.js zelf gespawnd).
 ## 0. Auto-deploy (aanbevolen)
 
 Bij elke push naar `main` rolt GitHub Actions de VPS automatisch bij
-(`.github/workflows/deploy.yml`): pull → deps → migraties → pm2 restart,
-plus een smoke-check dat de API daarna antwoordt. Bij één keer instellen:
+(`.github/workflows/deploy.yml`): eerst de **volledige testsuite** op de
+runner (`npm test` — faalt die, dan wordt er niets gerold), daarna pull →
+deps → migraties → pm2 restart, plus een smoke-check dat de API daarna
+antwoordt. Op pull-requests draait dezelfde suite los (`.github/workflows/
+test.yml`). Bij één keer instellen:
 
 **Op de VPS — een deploy-key maken:**
 ```bash

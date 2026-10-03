@@ -77,6 +77,7 @@ Chronicle start op 0 — geen V1-backfill.
 ```
 cd db && docker compose up -d && npm install && npx drizzle-kit migrate
 cd server && npm install && npm start   # index.js + memory-process sidecar
+cd server && npm test                   # alle *.test.js, één poort
 ```
 
 Auth-beleid in het kort: elke API-route (geheugen, persona, inbox, ingestie,

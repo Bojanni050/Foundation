@@ -6,6 +6,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "test": "node run-tests.js",
     "mcp": "node mcpServer.js",
     "test:mcp": "node mcpServer.test.js"
   },

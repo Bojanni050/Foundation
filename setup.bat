@@ -17,9 +17,7 @@ npx drizzle-kit migrate
 
 cd ..\server
 call npm install
-node ingestPolicy.test.js
-node ingestBridge.test.js
-node auth.test.js
+node run-tests.js
 
 echo.
 echo Setup compleet. Start de server met: cd server ^&^& npm start

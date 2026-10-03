@@ -24,14 +24,8 @@ echo "==> Server-dependencies installeren"
 cd ../server
 npm install
 
-echo "==> Ingest-policy-tests draaien"
-node ingestPolicy.test.js
-
-echo "==> Ingest-bridge-tests draaien"
-node ingestBridge.test.js
-
-echo "==> Auth-tests draaien"
-node auth.test.js
+echo "==> Volledige testsuite (alle *.test.js, één poort)"
+node run-tests.js
 
 echo ""
 echo "Setup compleet. Start de server met: cd server && npm start"

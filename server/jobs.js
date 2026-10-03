@@ -151,18 +151,45 @@ async function consolidateKenmerken() {
   }
 }
 
+// Single-flight guard: valt een tick terwijl de vorige run nog loopt (tragende
+// ONNX-pijp, grote tabel, Hindsight-netwerkstoring), dan wordt die tick
+// overgeslagen in plaats van overlappend gestart. Overlappende consolidatie is
+// het echte risico: twee runs zien dezelfde dubbele kenmerken vóórdat de
+// survivor is weggeschreven en kunnen elk een eigen survivor "winnen" — de
+// merge-logica is alleen binnen één run idempotent. De guard zit alleen op de
+// scheduler-ingang; de rauwe functions blijven via de exports bereikbaar.
+function guard(name, fn) {
+  let running = false;
+  return async () => {
+    if (running) {
+      console.warn(`[jobs] ${name}: vorige run nog bezig — tick overgeslagen`);
+      return;
+    }
+    running = true;
+    try {
+      await fn();
+    } finally {
+      running = false;
+    }
+  };
+}
+
 // Start background schedulers
 function startBackgroundJobs() {
-  setInterval(runAutoHealEmbeddings, 300000); // 5 minutes
-  setInterval(consolidateKenmerken, 300000);  // 5 minutes
+  const heal = guard("auto-heal", runAutoHealEmbeddings);
+  const consolidatie = guard("consolidator", consolidateKenmerken);
+  const brug = guard("ingest-bridge", runIngestBridge);
 
-  setTimeout(runAutoHealEmbeddings, 10000);  // 10 seconds after startup
-  setTimeout(consolidateKenmerken, 12000);   // 12 seconds after startup
+  setInterval(heal, 300000);         // 5 minutes
+  setInterval(consolidatie, 300000); // 5 minutes
+
+  setTimeout(heal, 10000);           // 10 seconds after startup
+  setTimeout(consolidatie, 12000);   // 12 seconds after startup
 
   // Ingest-bridge: vries nieuwe ingest_object-rijen als episode. Draait hier
   // (memory-proces), niet in het capture-proces — zie server/ingestBridge.js.
-  setInterval(runIngestBridge, 60000);      // 1 minute
-  setTimeout(runIngestBridge, 15000);       // 15 seconds after startup
+  setInterval(brug, 60000);          // 1 minute
+  setTimeout(brug, 15000);           // 15 seconds after startup
 
   // Reflectie-pijp naar Hindsight (zelfde VPS): mens-bevestigde feiten
   // doorzetten naar de bank. Configuratie komt per run uit integration_config
@@ -170,7 +197,7 @@ function startBackgroundJobs() {
   // hem elke tick opnieuw, dus een UI-wijziging geldt zonder herstart. Zonder
   // configuratie is er geen pijp, geen fout elke minuut. Zie
   // server/hindsightSync.js.
-  const runPijp = async () => {
+  const runPijpRaw = async () => {
     const config = await getIntegrationConfig();
     if (!config.hindsightUrl || !config.hindsightBankId) return;
     let client;
@@ -185,15 +212,16 @@ function startBackgroundJobs() {
     }
     return runHindsightSync({ client });
   };
-  setInterval(runPijp, 300000);   // 5 minutes
-  setTimeout(runPijp, 20000);      // 20 seconds after startup
+  const pijp = guard("hindsight-pijp", runPijpRaw);
+  setInterval(pijp, 300000);   // 5 minutes
+  setTimeout(pijp, 20000);      // 20 seconds after startup
 
   // Reflectie-engine: nieuwe episodes tegen actieve feiten laten beoordelen
   // door de reflectie-LLM; stelt OPEN hypotheses voor (supersessie als
   // update), de mens bevestigt/verwerpt via de bestaande routes. Configuratie
   // per run uit integration_config met env-fallback — zelfde reden als bij
   // de pijp hierboven. Zie server/hypothesisReflectionSync.js.
-  const runEngine = async () => {
+  const runEngineRaw = async () => {
     const config = await getIntegrationConfig();
     if (!config.reflectionLlmApiKey || !config.reflectionLlmBaseUrl || !config.reflectionLlmModel) return;
     const reflector = reflectorFromEnv({
@@ -204,8 +232,9 @@ function startBackgroundJobs() {
     if (!reflector) return;
     return runHypothesisReflectionSync({ reflector });
   };
-  setInterval(runEngine, 900000);  // 15 minutes
-  setTimeout(runEngine, 30000);     // 30 seconds after startup
+  const engine = guard("reflectie-engine", runEngineRaw);
+  setInterval(engine, 900000);  // 15 minutes
+  setTimeout(engine, 30000);     // 30 seconds after startup
 
   // Screenpipe is gated behind its own subscription now and unusable.
   // PureMemory's external Go collector-agent has been replaced by native
@@ -219,5 +248,6 @@ module.exports = {
   runAutoHealEmbeddings,
   consolidateKenmerken,
   runIngestBridge,
-  startBackgroundJobs
+  startBackgroundJobs,
+  guard,
 };

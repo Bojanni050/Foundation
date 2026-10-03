@@ -22,7 +22,7 @@ const z = require("zod");
 
 const API_URL = process.env.CHRONICLE_API_URL || "http://127.0.0.1:4577";
 // Bearer-token voor de hele API-rand: sinds de capture-proxy authenticatie
-// afdwingt op /api/memory, /api/persona, de ingest-routes én de inbox, MOET
+// afdwingt op /api/memory, /api/persona en de ingest-routes, MOET
 // deze client er altijd een hebben. CHRONICLE_TOKEN (env) wint; anders wordt
 // server/data/token.txt gelezen — hetzelfde bestand dat auth.js beheert.
 // Bewust lezen zonder side-effect: ontbreekt het bestand (server nog nooit

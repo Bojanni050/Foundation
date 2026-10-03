@@ -98,8 +98,8 @@ router.post("/restore-sessions/:sessionId/rollback", requireAuth, (req, res) => 
 
 // POST /api/attachments — raw binary body. Filename via X-Attachment-Filename
 // (URL-encoded), mime type via Content-Type. Requires the same bearer token
-// as /api/objects/import — both are write paths for external tools (browser
-// extension, bulk importer), not just the app's own UI.
+// as the Ingestie Gateway — both are write paths for external tools (bulk
+// importer, capture clients), not just the app's own UI.
 router.post("/", requireAuth, express.raw({ type: "*/*", limit: "25mb" }), (req, res) => {
   if (!Buffer.isBuffer(req.body) || !req.body.length) {
     return res.status(400).json({ error: "empty body" });
@@ -191,8 +191,9 @@ router.post("/purge-orphans", requireAuth, (req, res) => {
 
 // GET /api/attachments/:id/:filename — no auth: this is what <img src> tags
 // in the app's own UI hit directly, and browsers don't attach bearer tokens
-// to those requests. Localhost-only binding + the origin check in
-// server/index.js are the security boundary here, same as GET /api/inbox.
+// to those requests. De verdediging is dan de id zélf: crypto.randomBytes(12)
+// — onraadbaar — plus de origin-check in server/index.js; wie geen id kent
+// kan niets enumereren.
 router.get("/:id/:filename", (req, res) => {
   const attachment = getAttachment(req.params.id);
   if (!attachment) return res.status(404).json({ error: "not found" });

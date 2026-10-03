@@ -1,7 +1,7 @@
 /**
  * Deterministic, fast content hash for deduplication.
  * Not cryptographic — just good enough to catch duplicate chat/text content.
- * Both frontend (IndexedDB) and server (inbox.json) use the same algorithm
+ * Both frontend (IndexedDB) and server (ingest_object) use the same algorithm
  * so hashes are portable between them.
  *
  * @param {string} str — the text to hash

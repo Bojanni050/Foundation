@@ -12,7 +12,7 @@
 // en dient als idempotieits-identiteit: dezelfde conversatie die opnieuw
 // binnenkomt (gegroeid of via een tweede kanaal) updatet dezelfde rij via
 // ON CONFLICT DO UPDATE in plaats van te dupliceren. content_hash komt uit
-// contentHash.js — zelfde algoritme als frontend/inbox, portable.
+// contentHash.js — zelfde algoritme als de frontend, portable.
 //
 // Geen ruisfilter in Foundation: de capture-kant filtert vóór indiening; hier
 // wordt geregistreerd wat de officiële pijp bereikt.

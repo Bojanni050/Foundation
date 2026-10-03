@@ -1,6 +1,7 @@
-// Controls for the ChatGPT bulk importer (tools/chatgpt_bulk_import) — a
-// Python/Playwright script that walks a logged-in ChatGPT session and posts
-// every conversation to /api/objects/import. Chronicle spawns/tracks it here
+// Controls for the bulk importer (tools/chatgpt_bulk_import) — a
+// Python/Playwright script that walks a logged-in ChatGPT/Gemini session and
+// posts every conversation to the Ingestie Gateway (POST /api/ingest/chat).
+// Foundation spawns/tracks it here
 // (see chatgptImportManager.js) similarly to how it manages the memory-process.
 const express = require("express");
 const { requireAuth } = require("../auth");

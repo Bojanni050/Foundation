@@ -8,7 +8,7 @@
  * genuine update, not a duplicate) and can differ between two scrapers of
  * the exact same conversation (turndown vs markdownify formatting quirks).
  *
- * Both frontend (IndexedDB) and server (inbox.json) use the same algorithm
+ * Both frontend (IndexedDB) and server (ingest_object) use the same algorithm
  * so ids are portable between them — same convention as contentHash.js.
  *
  * @param {string|null|undefined} sourceProvider — e.g. "chatgpt", "claude", "gemini"

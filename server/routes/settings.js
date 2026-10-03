@@ -18,7 +18,7 @@ router.get("/token", requireLoopback, (_req, res) => {
 });
 
 // GET /api/settings/resource-usage — this process only (the capture engine:
-// inbox, attachments, connectors). The memory-process reports its own via
+// ingestie, attachments). The memory-process reports its own via
 // GET /api/memory/resource-usage, proxied over loopback like everything else
 // under /api/memory — the two are separate OS processes, each samples itself.
 router.get("/resource-usage", (_req, res) => {

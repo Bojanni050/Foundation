@@ -33,11 +33,14 @@ Foundation-Chronicle blijft ongewijzigd als archief liggen.
 (PersonaDialog), Python memory/-laag (Hermes-fossiel), de Hermes-kabel
 (poort 4579), connectors-route (WordPress-erfgoed), Capacities-frontend.
 
-**Bruggetje (tijdelijk):** het oude inbox/memory-process-patroon
-(inboxStore, captureActivityLog, /api/inbox, memory-process sidecar) blijft
-aangezet omdat het geweven zit in de import-flow. De Ingestie Gateway is nu
-gebouwd (zie hieronder); zodra de import-flow en clients op /api/ingest/*
-zitten, verdwijnt het bruggetje.
+**Bulk-importer (4 okt 2026 verhuisd):** de importer staat nu hier zelf, in
+`tools/chatgpt_bulk_import/`, en post via de Ingestie Gateway
+(`POST /api/ingest/chat`) — same dedup, same field contract. Het oude
+inbox/memory-process-patroon (inboxStore, /api/inbox, /api/objects/import)
+is daarmee **gesloopt**: de Gateway is de enige pijp, de inbox bestond niet
+eens meer op de VPS (0 items). Clients die nog `/api/objects/import`
+aanspreken (chronicle browser-extension) verplaatsen naar
+`POST /api/ingest/chat`.
 
 ## Ingestie Gateway (25 sep 2026)
 

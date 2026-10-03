@@ -10,7 +10,7 @@ function roleLabel(role) {
 
 // POST /api/objects/:objectId/embed
 // Called after any object is created/re-imported that's worth making
-// searchable: chat objects (extension inbox or manual paste/upload, which
+// searchable: chat objects (ingestie-chats of handmatige paste/upload, which
 // have turns) as well as single-blob objects like Screenpipe extractions or
 // plain notes (no turns — the whole content becomes one chunk). Best-effort,
 // same graceful-fallback philosophy as persona_kenmerk: a failed embedding

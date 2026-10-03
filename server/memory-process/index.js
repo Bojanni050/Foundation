@@ -59,9 +59,8 @@ app.get("/api/memory/resource-usage", (_req, res) => {
 });
 
 // POST/GET /api/settings/capture-activity — the "event-hook after
-// distribution" plug-in point: pollInbox() (frontend) stays the sole inbox
-// claimant (no race with anything here), and calls this right after it
-// creates or updates an object from a claimed item. Visibility/debug only,
+// distribution" plug-in point: the Ingestie Gateway mirrors every accepted
+// ingest into this ring buffer (fire-and-forget). Visibility/debug only,
 // by design — nothing here triggers further memory-side action on its own.
 app.post("/api/settings/capture-activity", (req, res) => {
   const { title, sourceProvider, type } = req.body || {};
@@ -81,7 +80,7 @@ app.use("/api/settings/integrations", require("./integrationRoutes"));
 
 // Start background schedulers (consolidator, auto-heal). If either hangs or
 // crashes, only this process is affected — Chronicle's capture endpoints
-// (inbox, attachments, connectors) keep responding regardless, since they
+// (ingestie, attachments) keep responding regardless, since they
 // live in a different OS process.
 startBackgroundJobs();
 

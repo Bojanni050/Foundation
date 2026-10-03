@@ -11,3 +11,8 @@ server/data/
 # Logs
 *.log
 npm-debug.log*
+
+# Bulk-importer: resume-state en browser-profielen (nooit commiten)
+tools/chatgpt_bulk_import/imported.json
+tools/chatgpt_bulk_import/.*_profile/
+__pycache__/

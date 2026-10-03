@@ -20,8 +20,6 @@ const { spawn } = require("child_process");
 const path = require("path");
 const { Readable } = require("stream");
 const { TOKEN, requireAuth } = require("./auth");
-const { readInbox, writeInbox, pushToInbox } = require("./inboxStore");
-const { notifyCaptureActivity } = require("./captureActivityNotifier");
 
 const settingsRouter = require("./routes/settings");
 const chatgptImportRouter = require("./routes/chatgptImport");
@@ -38,7 +36,7 @@ const ingestRouter = require("./routes/ingest");
 // The consolidator/auto-heal jobs and the persona routes now live in their
 // own OS process (server/memory-process/index.js) — spawned and proxied
 // below. This is the capture/memory process split: a hang or crash on the
-// memory side can no longer take the inbox/attachments endpoints
+// memory side can no longer take the ingest/attachments endpoints
 // down with it, since they're no longer sharing an event loop.
 const MEMORY_HOST = "127.0.0.1";
 const MEMORY_PORT = process.env.MEMORY_PORT || 4578;
@@ -178,80 +176,14 @@ app.use("/api/settings/chatgpt-import", chatgptImportRouter);
 app.use("/api/attachments", attachmentsRouter);
 
 // Ingestie Gateway — server-side ingest met statusmarkering `observation` bij
-// binnenkomst (typeward entry-points, zie routes/ingest.js). Onafhankelijk
-// van de inbox/objects-import-route hierboven: dit is de officiële pijp voor
-// alle externe capture-bronnen.
+// binnenkomst (typeward entry-points, zie routes/ingest.js). Dit is de enige
+// officiële pijp voor alle externe bronnen: de legacy inbox-route
+// (/api/objects/import + /api/inbox-drieluik, "bruggetje" in de oude README)
+// is verwijderd — de gateway-upsert (provider_conversation_id) dekt exact
+// wat de inbox deed, epistemisch correcter en met de veldcontracten van
+// ingestPolicy. Clients die nog naar /api/objects/import posten (chronicle
+// browser-extension): verplaats naar POST /api/ingest/chat.
 app.use("/api/ingest", ingestRouter);
-
-// Extension (and other capture sources, e.g. uiaCapture.js) → queue an object
-app.post("/api/objects/import", requireAuth, (req, res) => {
-  const { type, source, title, content, sourceProvider, url, tags, turns, occurredAt, attachments } = req.body || {};
-  if (!content) return res.status(400).json({ error: "content required" });
-  const objectId = "inbox_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
-  pushToInbox({
-    objectId,
-    // Defaults match the actual browser extension, which never sends these
-    // fields — other callers (uiaCapture.js sends type: "activity") were
-    // previously silently overridden here and always filed as a chat.
-    type: type || "chat",
-    source: source || "extension",
-    title: title || "Imported chat",
-    content,
-    sourceProvider: sourceProvider || null,
-    url: url || null,
-    tags: Array.isArray(tags) ? tags : [],
-    // Structured role/text turns, kept alongside the flattened `content` so
-    // the frontend can request message-level embeddings after import without
-    // re-scraping. Optional — older extension versions won't send this.
-    turns: Array.isArray(turns) ? turns : [],
-    queuedAt: new Date().toISOString(),
-    occurredAt: occurredAt || null,
-    // Metadata only ({id, filename, mimeType, size, url} per item) — the
-    // actual bytes were already POSTed to /api/attachments beforehand and
-    // live on disk under server/data/attachments/. Optional, so older
-    // callers (extension, manual imports) that never send this still work.
-    attachments: Array.isArray(attachments) ? attachments : [],
-  });
-  res.status(201).json({ success: true, objectId });
-});
-
-// Web app → pull queued objects. Bearer-token now required: with
-// CHRONICLE_HOST on e.g. the tailnet, the loopback binding alone no longer
-// covers these — the inbox carries raw capture content and DELETE would
-// silently drop it. (Legacy bridge; disappears with the /api/ingest/*
-// migration, see README "Bruggetje".)
-app.get("/api/inbox", requireAuth, (_req, res) => {
-  res.json(readInbox());
-});
-
-// POST /api/inbox/claim — atomic read-and-clear, in one request. Prevents
-// the race that GET-then-later-DELETE has: if two separate frontend clients
-// (e.g. a browser tab and the Tauri app, which have entirely separate
-// IndexedDB storage) both poll the inbox, a plain GET can hand the same
-// items to both before either gets around to clearing it. Since readInbox()/
-// writeInbox() are synchronous, doing both within one handler — with no
-// `await` in between — can't be interleaved by another request in Node's
-// single-threaded event loop, so exactly one caller ever receives each item.
-app.post("/api/inbox/claim", requireAuth, (_req, res) => {
-  const items = readInbox();
-  writeInbox([]);
-  // Visibility-only mirror into the memory-process's activity ring buffer
-  // (Instellingen → Activiteit) — one event per claimed item, fire-and-forget.
-  for (const item of items) {
-    notifyCaptureActivity({
-      title: item.title,
-      sourceProvider: item.sourceProvider,
-      type: item.type,
-    });
-  }
-  res.json(items);
-});
-
-// Web app → clear synced entries
-app.delete("/api/inbox", requireAuth, (_req, res) => {
-  writeInbox([]);
-  res.json({ success: true });
-});
 
 // Spawn the memory-process (consolidator/auto-heal jobs, persona routes,
 // the embedding pipeline) as its own OS process. stdio: "inherit" so its
@@ -293,7 +225,7 @@ const server = app.listen(PORT, HOST, () => {
   console.log(`  (paste this token into the extension popup & the app Settings)`);
   if (!["127.0.0.1", "localhost", "::1"].includes(HOST)) {
     console.log(`  ⚠ Binding outside loopback: every API route now enforces the bearer token`);
-    console.log(`    (memory/persona/inbox/ingest), and GET /api/settings/token is`);
+    console.log(`    (memory/persona/ingest), and GET /api/settings/token is`);
     console.log(`    loopback-only — hand out server/data/token.txt out-of-band.\n`);
   } else {
     console.log("");

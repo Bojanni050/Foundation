@@ -1,9 +1,8 @@
 // Lightweight, in-memory ring buffer of "what got captured" notifications.
-// Fed by pollInbox() (frontend) right after it turns a claimed inbox item
-// into a new or updated IndexedDB object — this is the "event-hook after
-// distribution" plug-in point for the memory-process: pollInbox() stays the
-// sole inbox claimant (no race), and this is visibility/debug only, by
-// design — the memory-process takes no further action on these entries.
+// Fed by the Ingestie Gateway (routes/ingest.js) right after a successful
+// ingest — the "event-hook after distribution" plug-in point for the
+// memory-process. Visibility/debug only, by design: the memory-process
+// takes no further action on these entries.
 const MAX_ENTRIES = 200;
 let entries = [];
 

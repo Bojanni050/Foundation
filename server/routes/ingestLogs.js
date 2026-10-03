@@ -1,13 +1,12 @@
 // Ingestie/capture-log-API voor het dashboard op /ui (public/index.html).
 // Alleen lezen: deze route toont wat er binnenkomt en of de brug het al
 // heeft verwerkt — hij beïnvloedt nooit de verwerking zelf.
-// GET /api/ingest-logs          — recente ingest_object-rijen + inbox-items
+// GET /api/ingest-logs          — recente ingest_object-rijen
 // GET /api/ingest-logs/:id      — volledige rij + de episodes die eruit zijn
 //                                 bevroren (bron_object_id = ingest:<uuid>)
 const express = require("express");
 const { pool } = require("../db");
 const { requireAuth } = require("../auth");
-const { readInbox } = require("../inboxStore");
 
 const router = express.Router();
 router.use(requireAuth);
@@ -27,9 +26,7 @@ router.get("/", async (req, res, next) => {
        LIMIT $1`,
       [limit],
     );
-    // De legacy-inbox (file-based, /api/objects/import) hoort er ook bij:
-    // het is nog steeds een manier waarop data Foundation in gepompt wordt.
-    res.json({ objects: rows, inbox: readInbox() });
+    res.json({ objects: rows });
   } catch (err) {
     next(err);
   }

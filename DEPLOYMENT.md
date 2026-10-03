@@ -54,7 +54,7 @@ als subprocess en herstart het bij crash.
 - **4577 en 4578 zijn loopback-only** (`127.0.0.1`, hardcoded in
   `server/index.js` en `server/memory-process/index.js`).
 - **Alle API-routes eisen de bearer-token** — geheugen/persona (via de
-  capture-proxy), inbox, ingestie, import-start en de config-schrijvers.
+  capture-proxy), ingestie, import-start en de config-schrijvers.
   Uitzonderingen, bewust read-only health: `GET /api/settings/status`,
   `GET /api/settings/resource-usage`, `GET /api/settings/embedding-model` en
   `GET /api/settings/chatgpt-import/status`.
@@ -182,10 +182,11 @@ er nog steeds niet op (Tailscale is WireGuard-versleuteld en alleen jouw
 masken komt erop), en de bearer-token blijft vereist. `0.0.0.0` is en
 blijft verboden; het memory-proces (4578) blijft altijd loopback.
 
-**Let op na deze wijziging:** alle API-routes (geheugen, persona, inbox,
-ingestie) eisen dan de bearer-token, en `/api/settings/token` is vanaf het
-tailnet zelf niet meer bereikbaar (403) — plak de token dus uit de hand in
-de clients. De inbox-routes zijn alleen nog in gebruik door de legacy
-bulk-import stroom; de Chronicle-clients pollen de inbox niet meer, dus er
-is geen clientwijziging nodig. De hele brug verdwijnt zodra de import-flow
-naar `/api/ingest/chat` gaat (zie README "Bruggetje").
+**Let op na deze wijziging:** alle API-routes (geheugen, persona, ingestie)
+eisen dan de bearer-token, en `/api/settings/token` is vanaf het tailnet
+zelf niet meer bereikbaar (403) — plak de token dus uit de hand in de
+clients. De legacy-inboxbrug is intussen gesloopt (4 okt 2026): de
+bulk-importer staat in `tools/` van deze repo en post naar
+`/api/ingest/chat`. Op de VPS vereist de importer-regeling daar wel een
+Python + Playwright-install (browser); zonder die tools faalt de preflight
+netjes — de UI-importknop is in die setup een bewuste dode knop.

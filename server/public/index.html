@@ -32,7 +32,6 @@
   .b-capture { background: rgba(248,113,113,.15); color: #f87171; }
   .b-document { background: rgba(251,191,36,.15); color: #fbbf24; }
   .b-diary { background: rgba(167,139,250,.15); color: #a78bfa; }
-  .b-inbox { background: rgba(148,163,184,.15); color: #94a3b8; }
   .ok { color: #22c55e; } .pend { color: #f59e0b; }
   .detail { border-left: 1px solid #1e293b; background: #0f172a; padding: 16px; overflow-y: auto; }
   .detail h2 { font-size: 14px; margin: 0 0 4px; }
@@ -130,15 +129,13 @@ async function load() {
 
 function render(data) {
   const objs = data.objects || [];
-  const inbox = data.inbox || [];
-  document.getElementById("live").textContent =
-    objs.length + " objecten · " + inbox.length + " in legacy-inbox · live";
+  document.getElementById("live").textContent = objs.length + " objecten · live";
 
   const pend = objs.filter(o => !o.memory_processed_at).length;
   document.getElementById("stats").innerHTML =
     stat(objs.length, "binnen (ingest)") + stat(pend, "wachten op brug") +
-    stat(objs.length - pend, "verwerkt → episode") + stat(inbox.length, "legacy-inbox");
-  document.getElementById("empty").style.display = objs.length + inbox.length ? "none" : "block";
+    stat(objs.length - pend, "verwerkt → episode");
+  document.getElementById("empty").style.display = objs.length ? "none" : "block";
 
   let html = "";
   for (const o of objs) {
@@ -149,13 +146,6 @@ function render(data) {
       "<td>" + esc(o.title || "(geen titel)") + "</td>" +
       "<td>" + esc(o.status) + "</td>" +
       '<td class="' + (o.memory_processed_at ? "ok" : "pend") + '">' + (o.memory_processed_at ? "✓ episode" : "⏳ wacht") + "</td></tr>";
-  }
-  for (const it of inbox) {
-    html += '<tr><td>' + fmtTime(it.queuedAt || it.timestamp || "") + "</td>" +
-      '<td><span class="badge b-inbox">inbox</span></td>' +
-      "<td>" + esc(it.sourceProvider || it.source || "?") + "</td>" +
-      "<td>" + esc(it.title || "(geen titel)") + "</td>" +
-      "<td>queued</td><td class='pend'>in wachtrij</td></tr>";
   }
   document.getElementById("rows").innerHTML = html;
 }

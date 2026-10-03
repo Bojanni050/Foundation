@@ -2,7 +2,7 @@
   "name": "chronicle-server",
   "version": "1.0.0",
   "private": true,
-  "description": "Chronicle local API server — localhost-only inbox queue for the browser extension pipeline, plus the Persona API.",
+  "description": "Foundation local API server — Ingestie Gateway, epistemic memory and the Persona API.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

@@ -1,6 +1,6 @@
 // Fire-and-forget bridge from the capture process to the memory-process's
 // capture-activity ring buffer (captureActivityLog.js). The buffer lives in
-// the memory-process; ingest and inbox/claim live in the capture process —
+// the memory-process; ingest lives in the capture process — two OS
 // two OS processes, so the event crosses the same loopback boundary the
 // persona/embedding proxies already use. Visibility/debug only, by design:
 // a failed notify (memory-process down or restarting) is swallowed and never

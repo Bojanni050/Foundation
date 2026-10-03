@@ -14,7 +14,10 @@
 // de volgende run dezelfde feiten opnieuw (Hindsight's retain is
 // idempotent genoeg: een tweede push van hetzelfde feit is een extra
 // memory met identieke inhoud, geen corruptie — bewust steeds vooruit
-// in plaats van een dedup-akkoord met een externe dienst).
+// in plaats van een dedup-akkoord met een externe dienst). Het watermerk
+// schuift naar de laatste VERWERKTE fact, nooit voorbij de batch: een burst
+// (massale confirms na een bulk-import) laat de rest van het venster staan
+// voor de volgende run in plaats van hem stilzwijgend te verspringen.
 //
 // Draait als achtergrondjob in het memory-proces (jobs.js), niet in het
 // capture-proces — zelfde isolatie-redenering als de consolidator.
@@ -25,19 +28,29 @@ const CHECKPOINT_ID = "00000000-0000-0000-0000-000000000001";
 const BATCH_LIMIT = 25;
 
 function buildFactItem(fact, hypothesis) {
+  // Rows arrive straight from `SELECT f.*` → snake_case. Accept camelCase
+  // too (same dual-shape tolerance as epistemicPolicy.buildFactFromHypothesis)
+  // so the function works with injected/test rows as well — a purely
+  // camelCase implementation looked fine in tests and silently sent
+  // timestamp "unset" and empty provenance to Hindsight in production.
+  const created = fact.created_at ?? fact.createdAt;
+  const validFrom = fact.valid_from ?? fact.validFrom;
+  const validTo = fact.valid_to ?? fact.validTo;
+  const temporalText = fact.temporal_text ?? fact.temporalText;
+  const supersedes = fact.supersedes_fact_id ?? fact.supersedesFactId;
   return {
     content: fact.inhoud,
-    context: hypothesis ? hypothesis.hypothese : null,
-    timestamp: fact.createdAt ? fact.createdAt.toISOString() : "unset",
+    context: hypothesis ? (hypothesis.hypothese ?? null) : null,
+    timestamp: created ? created.toISOString() : "unset",
     documentId: fact.id,
     tags: ["foundation:fact"],
     metadata: {
       foundation_fact_id: fact.id,
-      foundation_hypothesis_id: fact.hypothesisId || "",
-      ...(fact.validFrom ? { valid_from: fact.validFrom.toISOString() } : {}),
-      ...(fact.validTo ? { valid_to: fact.validTo.toISOString() } : {}),
-      ...(fact.temporalText ? { temporal_text: fact.temporalText } : {}),
-      ...(fact.supersedesFactId ? { supersedes_fact_id: fact.supersedesFactId } : {}),
+      foundation_hypothesis_id: fact.hypothesis_id ?? fact.hypothesisId ?? "",
+      ...(validFrom ? { valid_from: validFrom.toISOString() } : {}),
+      ...(validTo ? { valid_to: validTo.toISOString() } : {}),
+      ...(temporalText ? { temporal_text: temporalText } : {}),
+      ...(supersedes ? { supersedes_fact_id: supersedes } : {}),
     },
   };
 }
@@ -89,12 +102,20 @@ async function runHindsightSync({ client, pool: poolArg, now = () => new Date() 
   }
 
   try {
+    // Burst-safe watermerk: schuift naar de TIJDSTIP VAN DE LAATST VERWERKTE
+    // fact, nooit naar batchUpperBound. Een voller batch (BATCH_LIMIT bereikt,
+    // bijv. massale confirms na een bulk-import) laat de rest van het venster
+    // onaangeroerd — de volgende run pakt die op dezelfde plek op. Vóór deze
+    // regel sloop de pijp bij een burst stilzwijgend over niet-verwerkte
+    // feiten heen: hun created_at < upperBound viel voort buiten het venster.
+    const last = facts[facts.length - 1];
+    const watermarkAt = last.created_at ?? last.createdAt ?? batchUpperBound;
     await pool.query(
       `INSERT INTO hindsight_progress (id, last_fact_created_at, updated_at)
        VALUES ($1, $2, now())
        ON CONFLICT (id) DO UPDATE
        SET last_fact_created_at = EXCLUDED.last_fact_created_at, updated_at = now()`,
-      [CHECKPOINT_ID, batchUpperBound]
+      [CHECKPOINT_ID, watermarkAt]
     );
     console.log(`[HindsightSync] ${retained}/${facts.length} fact(en) naar Hindsight gestuurd`);
   } catch (err) {

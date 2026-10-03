@@ -191,7 +191,7 @@ async function runHypothesisReflectionSync({
     embedText
   );
   if (relevantFacts.length === 0) {
-    await advanceWatermark(pool, runStartedAt);
+    await advanceWatermark(pool, batchCeiling(episodes, runStartedAt));
     return;
   }
 
@@ -205,7 +205,7 @@ async function runHypothesisReflectionSync({
     return;
   }
   if (!Array.isArray(proposals) || proposals.length === 0) {
-    await advanceWatermark(pool, runStartedAt);
+    await advanceWatermark(pool, batchCeiling(episodes, runStartedAt));
     return;
   }
 
@@ -234,18 +234,33 @@ async function runHypothesisReflectionSync({
     }
   }
 
-  await advanceWatermark(pool, runStartedAt);
+  await advanceWatermark(pool, batchCeiling(episodes, runStartedAt));
   console.log(`[Reflectie] ${created} hypothese(n) voorgesteld uit ${episodes.length} episode(s)`);
 }
 
-async function advanceWatermark(pool, runStartedAt) {
+// Burst-safe watermerk-plafond: het watermerk mag nooit voorbij de LAATSTE
+// werkelijk beoordeelde episode springen. Bij een volle batch (EPISODE_BATCH
+// bereikt — een bulk-import vriest ruim daarbinnen tientallen episodes) zou
+// een advance op runStartedAt de rest van het venster stilzwijgend
+// overslaan: hun captured_at valt dan onder het nieuwe plafond en wordt
+// nooit beoordeeld. Met het plafond op de laatst verwerkte rij pakt de
+// volgende run precies daar op. Een niet-vervolle batch is per definitie
+// het hele venster — dan is de rij-tijdstip exact gelijk aan wat
+// runStartedAt zou doen.
+function batchCeiling(episodes, fallback) {
+  const last = episodes[episodes.length - 1];
+  if (!last) return fallback;
+  return last.captured_at ?? last.capturedAt ?? fallback;
+}
+
+async function advanceWatermark(pool, watermarkAt) {
   try {
     await pool.query(
       `INSERT INTO reflection_progress (id, last_episode_captured_at, updated_at)
        VALUES ($1, $2, now())
        ON CONFLICT (id) DO UPDATE
        SET last_episode_captured_at = EXCLUDED.last_episode_captured_at, updated_at = now()`,
-      [CHECKPOINT_ID, runStartedAt]
+      [CHECKPOINT_ID, watermarkAt]
     );
   } catch (err) {
     console.error("[Reflectie] watermerk-bijwerking mislukt:", err.message);

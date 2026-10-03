@@ -136,6 +136,46 @@ test("runHypothesisReflectionSync: max 3 voorstellen per run", async () => {
   assert.strictEqual(created.length, 3);
 });
 
+test("runHypothesisReflectionSync: burst boven EPISODE_BATCH → watermerk op laatste beoordeelde episode, rest volgende run", async () => {
+  const eps = Array.from({ length: 41 }, (_, i) => ({
+    id: `ep-${i}`,
+    fragment: `fragment ${i}`,
+    bronsoort: "chat",
+    captured_at: new Date(Date.parse("2025-02-01T00:00:00Z") + i * 1000),
+    observed_at: null,
+  }));
+  let wm = null;
+  const watermarks = [];
+  const judgedIds = [];
+  const pool = {
+    async query(text, values) {
+      if (text.startsWith("SELECT last_episode_captured_at")) return { rows: wm ? [{ last_episode_captured_at: wm }] : [] };
+      if (text.startsWith("INSERT INTO reflection_progress")) { wm = values[1]; watermarks.push(wm); return { rows: [] }; }
+      if (text.includes("FROM episode")) {
+        const [lastAt, upper, limit] = values;
+        return {
+          rows: eps
+            .filter((e) => e.captured_at > (lastAt ?? new Date(0)) && e.captured_at <= upper)
+            .slice(0, limit),
+        };
+      }
+      if (text.includes("FROM fact f")) return { rows: [{ id: "fact-1", inhoud: "bestaand feit", semantic_relevance: 0.9 }] };
+      return { rows: [] };
+    },
+  };
+  const reflector = { judge: async ({ episodes }) => { judgedIds.push(...episodes.map((e) => e.id)); return []; } };
+
+  await runHypothesisReflectionSync({ reflector, pool, embed: fakeEmbed, createOrReuseHypothesis: fakeCreate, linkEvidence: fakeLink });
+  assert.strictEqual(judgedIds.length, 40, "eerste run: precies EPISODE_BATCH episodes");
+  assert.strictEqual(watermarks.length, 1);
+  assert.strictEqual(watermarks[0].toISOString(), eps[39].captured_at.toISOString(),
+    "watermerk op de LAATSTE beoordeelde episode, niet op run-starttijd");
+
+  await runHypothesisReflectionSync({ reflector, pool, embed: fakeEmbed, createOrReuseHypothesis: fakeCreate, linkEvidence: fakeLink });
+  assert.strictEqual(judgedIds.length, 41, "tweede run: episode 41 alsnog beoordeeld, niet versprongen");
+  assert.strictEqual(watermarks[1].toISOString(), eps[40].captured_at.toISOString());
+});
+
 test("reflectorFromEnv: null zonder env, aanwezig met alle drie", () => {
   const before = { k: process.env.REFLECTION_LLM_API_KEY, b: process.env.REFLECTION_LLM_BASE_URL, m: process.env.REFLECTION_LLM_MODEL };
   delete process.env.REFLECTION_LLM_API_KEY;

@@ -86,6 +86,66 @@ test("runHindsightSync: zonder client is het een no-op", async () => {
   assert.strictEqual(pool.calls.length, 0);
 });
 
+test("buildFactItem: snake_case DB-rij → volledige provenance (regressie: camelCase-aanname gaf timestamp 'unset' in prod)", () => {
+  const row = {
+    id: "f-9",
+    inhoud: "Feit uit een echte Postgres-rij",
+    hypothesis_id: "h-9",
+    valid_from: new Date("2026-02-01T00:00:00Z"),
+    valid_to: null,
+    temporal_text: "sinds februari 2026",
+    supersedes_fact_id: "f-3",
+    created_at: new Date("2026-09-30T12:00:00Z"),
+    hypothese: "Onderliggende hypothese-tekst",
+  };
+  const item = buildFactItem(row, { hypothese: row.hypothese });
+  assert.strictEqual(item.timestamp, "2026-09-30T12:00:00.000Z");
+  assert.strictEqual(item.context, "Onderliggende hypothese-tekst");
+  assert.strictEqual(item.metadata.foundation_hypothesis_id, "h-9");
+  assert.strictEqual(item.metadata.valid_from, "2026-02-01T00:00:00.000Z");
+  assert.strictEqual(item.metadata.temporal_text, "sinds februari 2026");
+  assert.strictEqual(item.metadata.supersedes_fact_id, "f-3");
+  assert.ok(!("valid_to" in item.metadata), "null velden blijven weg uit metadata");
+});
+
+test("runHindsightSync: burst boven BATCH_LIMIT → watermerk op laatste bewaarde fact, rest volgende run (nooit versprongen)", async () => {
+  const facts = Array.from({ length: 26 }, (_, i) => ({
+    id: `burst-${i}`,
+    inhoud: `feit ${i}`,
+    hypothesis_id: `h-${i}`,
+    created_at: new Date(Date.parse("2025-01-01T00:00:00Z") + i * 1000),
+  }));
+  let wm = null;
+  const watermarks = [];
+  const pool = {
+    async query(text, values) {
+      if (text.startsWith("SELECT last_fact_created_at")) return { rows: wm ? [{ last_fact_created_at: wm }] : [] };
+      if (text.startsWith("INSERT INTO hindsight_progress")) { wm = values[1]; watermarks.push(wm); return { rows: [] }; }
+      if (text.includes("FROM fact")) {
+        const [lastAt, upper, limit] = values;
+        return {
+          rows: facts
+            .filter((f) => f.created_at > (lastAt ?? new Date(0)) && f.created_at <= upper)
+            .slice(0, limit),
+        };
+      }
+      return { rows: [] };
+    },
+  };
+  const retained = [];
+  const client = { retain: async (item) => retained.push(item) };
+
+  await runHindsightSync({ client, pool });
+  assert.strictEqual(retained.length, 25, "eerste run: precies BATCH_LIMIT feiten");
+  assert.strictEqual(watermarks.length, 1);
+  assert.strictEqual(watermarks[0].toISOString(), facts[24].created_at.toISOString(),
+    "watermerk op de LAATSTE verwerkte fact, niet op nu");
+
+  await runHindsightSync({ client, pool });
+  assert.strictEqual(retained.length, 26, "tweede run: de 26ste fact alsnog geretain, niet versprongen");
+  assert.strictEqual(watermarks[1].toISOString(), facts[25].created_at.toISOString());
+});
+
 test("hindsightClientFromEnv: null zonder env, client met env", () => {
   const before = { u: process.env.HINDSIGHT_URL, b: process.env.HINDSIGHT_BANK_ID };
   delete process.env.HINDSIGHT_URL;

@@ -6,7 +6,7 @@
 //
 // The typeward rule this module enforces (the Lumina lesson): an object's
 // herkomst determines which entry-point it may use, and each entry-point has
-// its own required/allowed/refused fields. A wrong call is a 400 — not a
+// its own required/allowed/refused fields. A wrong call is a 422 — not a
 // silent reinterpretation. Two fields are refused on EVERY entry-point:
 //
 //   - status: everything entering Foundation is `observation` by definition.

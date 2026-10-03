@@ -11,6 +11,17 @@
  * Both frontend (IndexedDB) and server (ingest_object) use the same algorithm
  * so ids are portable between them — same convention as contentHash.js.
  *
+ * DECISION (2026-10-04, improvement #6): a null return is meaningful, not a
+ * gap. Without a url there is no stable cross-delivery identity, so
+ * routes/ingest.js writes provider_conversation_id NULL — the ON CONFLICT
+ * target never matches and every delivery becomes its own `observation` row.
+ * Deliberate: a resent blob of identical content is epistemically
+ * indistinguishable from the same event genuinely occurring twice, and
+ * Foundation's rule is to register what reaches the pipe. Sources that want
+ * upsert semantics supply a url — capture-rs anchors
+ * `capture://capture/<id>` for exactly this reason. Do not "fix" NULL rows
+ * with a contentHash fallback without revisiting that ambiguity.
+ *
  * @param {string|null|undefined} sourceProvider — e.g. "chatgpt", "claude", "gemini"
  * @param {string|null|undefined} url — the conversation URL
  * @returns {string|null} — e.g. "chatgpt:6198b802-...", or null if no url

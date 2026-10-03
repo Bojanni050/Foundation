@@ -15,6 +15,10 @@
 //     not just wrong, it is structurally untrustworthy — refuse, don't strip.
 //   - providerConversationId / contentHash: server-derived identity, never
 //     client-aanbiedbaar, so a capture source can never forge dedup keys.
+//     A payload without a url gets no dedup identity at all (the derived id
+//     stays NULL): every delivery becomes its own observation row. That is a
+//     conscious decision, not an oversight — see providerConversationId.js
+//     ("DECISION", 2026-10-04).
 //
 // No ruisfilter here either: Foundation registers what reaches it. Filtering
 // belongs to the capture-kant (Capture RS) before submission.

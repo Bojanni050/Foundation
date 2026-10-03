@@ -396,7 +396,11 @@ export const knowledgeGap = pgTable("knowledge_gap", {
 // client-aanbiedbaar) maakt cross-kanaal idempotentie mogelijk: dezelfde
 // conversatie die via de extension én via de bulk-import binnenkomt, of een
 // import die opnieuw draait nadat de conversatie groeide, resolveert naar
-// dezelfde rij (ON CONFLICT DO UPDATE) in plaats van een duplicaat. Geen FK
+// dezelfde rij (ON CONFLICT DO UPDATE) in plaats van een duplicaat. BESLUIT
+// (4 okt 2026, verbetering #6): geen url = geen dedup-identiteit — de kolom
+// blijft NULL en elke levering wordt een eigen rij, bewust: herhaalde content
+// zonder stabiele identiteit is epistemisch niet te onderscheiden van een
+// echte herhaling. Geen FK
 // op een bron-object-id: objecten leven (nog) in IndexedDB bij de clients.
 // --------------------------------------------------------------------------
 

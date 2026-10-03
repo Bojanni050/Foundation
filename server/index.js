@@ -181,8 +181,9 @@ app.use("/api/attachments", attachmentsRouter);
 // (/api/objects/import + /api/inbox-drieluik, "bruggetje" in de oude README)
 // is verwijderd — de gateway-upsert (provider_conversation_id) dekt exact
 // wat de inbox deed, epistemisch correcter en met de veldcontracten van
-// ingestPolicy. Clients die nog naar /api/objects/import posten (chronicle
-// browser-extension): verplaats naar POST /api/ingest/chat.
+// ingestPolicy. Er is geen achtergebleven client: de enige browser-extensie
+// in de stack (capture-rs) praat alleen met diens eigen lokale bridge, nooit
+// met Foundation; de oude Chronicle-extensie die hier postte is verleden.
 app.use("/api/ingest", ingestRouter);
 
 // Spawn the memory-process (consolidator/auto-heal jobs, persona routes,
@@ -222,7 +223,7 @@ startMemoryProcess();
 const server = app.listen(PORT, HOST, () => {
   console.log(`\n  Chronicle local API running at http://${HOST}:${PORT}`);
   console.log(`  Token: ${TOKEN}`);
-  console.log(`  (paste this token into the extension popup & the app Settings)`);
+  console.log(`  (token for capture clients & the UI; mcpServer.js reads data/token.txt itself)`);
   if (!["127.0.0.1", "localhost", "::1"].includes(HOST)) {
     console.log(`  ⚠ Binding outside loopback: every API route now enforces the bearer token`);
     console.log(`    (memory/persona/ingest), and GET /api/settings/token is`);

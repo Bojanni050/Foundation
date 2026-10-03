@@ -66,8 +66,8 @@ als subprocess en herstart het bij crash.
   sudo ufw deny 5434    # tenzij er een specifieke reden is (er is er geen:
                         # alles praat via localhost)
   ```
-- Externe callers (extension, clients, Hindsight-bridge) komen binnen via
-  een reverse proxy met TLS die naar `127.0.0.1:4577` proxiet. De
+- Externe callers (Capture RS, Diary, IDE-agents, Hindsight-bridge) komen
+  binnen via een reverse proxy met TLS die naar `127.0.0.1:4577` proxiet. De
   bearer-token gaat over de lijn, dus TLS is geen optie maar een vereiste.
 
 Voorbeeld (Caddy, automatisch Let's Encrypt):

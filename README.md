@@ -38,9 +38,11 @@ Foundation-Chronicle blijft ongewijzigd als archief liggen.
 (`POST /api/ingest/chat`) — same dedup, same field contract. Het oude
 inbox/memory-process-patroon (inboxStore, /api/inbox, /api/objects/import)
 is daarmee **gesloopt**: de Gateway is de enige pijp, de inbox bestond niet
-eens meer op de VPS (0 items). Clients die nog `/api/objects/import`
-aanspreken (chronicle browser-extension) verplaatsen naar
-`POST /api/ingest/chat`.
+eens meer op de VPS (0 items). Een achtergebleven client die nog op
+`/api/objects/import` wacht, bestaat niet: de enige browser-extensie in de
+stack is die van capture-rs, en die praat alleen met zijn eigen lokale
+bridge (`127.0.0.1:8765`), nooit met Foundation. De oude Chronicle-extensie
+die vroeger naar de inbox postte, is archief-verleden.
 
 ## Ingestie Gateway (25 sep 2026)
 

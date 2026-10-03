@@ -50,6 +50,14 @@ als subprocess en herstart het bij crash.
 
 - **4577 en 4578 zijn loopback-only** (`127.0.0.1`, hardcoded in
   `server/index.js` en `server/memory-process/index.js`).
+- **Alle API-routes eisen de bearer-token** — geheugen/persona (via de
+  capture-proxy), inbox, ingestie, import-start en de config-schrijvers.
+  Uitzonderingen, bewust read-only health: `GET /api/settings/status`,
+  `GET /api/settings/resource-usage`, `GET /api/settings/embedding-model` en
+  `GET /api/settings/chatgpt-import/status`.
+- **`GET /api/settings/token` is alleen via loopback opvraagbaar** (de
+  UI-auto-fill werkt daarmee op de machine zelf; vanaf een tailnet-IP komt
+  403 terug, zodat de sleutel tot alles niet bij de deur hangt).
 - De database op 5434 is wel op de host gebonden — zet de firewall dicht:
   ```bash
   sudo ufw deny 5434    # tenzij er een specifieke reden is (er is er geen:
@@ -123,6 +131,12 @@ een andere omgeving hergebruiken.
 cat server/data/token.txt
 ```
 
+Elke API-aanroep behalve de read-only health-GET's (zie §3) heeft hem als
+`Authorization: Bearer <token>` nodig. `mcpServer.js` pakt hem automatisch:
+`CHRONICLE_TOKEN` uit de omgeving wint, anders wordt dit bestand gelezen.
+`GET /api/settings/token` (de UI-auto-fill) is alleen via loopback
+opvraagbaar — op een VPS of tailnet-binding dus hier uitlezen, niet opvragen.
+
 ## 5. Rook-test op de VPS
 
 ```bash
@@ -164,3 +178,11 @@ De server bindt dan alléén op dat interface — het publieke internet komt
 er nog steeds niet op (Tailscale is WireGuard-versleuteld en alleen jouw
 masken komt erop), en de bearer-token blijft vereist. `0.0.0.0` is en
 blijft verboden; het memory-proces (4578) blijft altijd loopback.
+
+**Let op na deze wijziging:** alle API-routes (geheugen, persona, inbox,
+ingestie) eisen dan de bearer-token, en `/api/settings/token` is vanaf het
+tailnet zelf niet meer bereikbaar (403) — plak de token dus uit de hand in
+de clients. De inbox-routes zijn alleen nog in gebruik door de legacy
+bulk-import stroom; de Chronicle-clients pollen de inbox niet meer, dus er
+is geen clientwijziging nodig. De hele brug verdwijnt zodra de import-flow
+naar `/api/ingest/chat` gaat (zie README "Bruggetje").

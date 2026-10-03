@@ -78,3 +78,10 @@ Chronicle start op 0 — geen V1-backfill.
 cd db && docker compose up -d && npm install && npx drizzle-kit migrate
 cd server && npm install && npm start   # index.js + memory-process sidecar
 ```
+
+Auth-beleid in het kort: elke API-route (geheugen, persona, inbox, ingestie,
+schrijvende settings) eist de bearer-token uit `server/data/token.txt`; alleen
+read-only health-GET's (`/api/settings/status`, `resource-usage`,
+embedding-model-GET, chatgpt-import-status) zijn open, en
+`GET /api/settings/token` (UI-auto-fill) is uitsluitend via localhost
+opvraagbaar. Zie DEPLOYMENT.md §3/§4.

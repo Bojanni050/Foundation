@@ -21,10 +21,23 @@ const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio
 const z = require("zod");
 
 const API_URL = process.env.CHRONICLE_API_URL || "http://127.0.0.1:4577";
-// De Ingestie Gateway (en het /ui-dashboard) eisen een bearer-token (auth.js,
-// server/data/token.txt). /api/memory op de memory-process is loopback-only en
-// heeft geen aparte token nodig, maar een meegestuurde token is nooit fout.
-const CHRONICLE_TOKEN = process.env.CHRONICLE_TOKEN || "";
+// Bearer-token voor de hele API-rand: sinds de capture-proxy authenticatie
+// afdwingt op /api/memory, /api/persona, de ingest-routes én de inbox, MOET
+// deze client er altijd een hebben. CHRONICLE_TOKEN (env) wint; anders wordt
+// server/data/token.txt gelezen — hetzelfde bestand dat auth.js beheert.
+// Bewust lezen zonder side-effect: ontbreekt het bestand (server nog nooit
+// gestart), blijft de token leeg en geeft elke aanroep een duidelijke 401/
+// unreachable-fout in plaats van hier een token te genereren die nergens
+// mee overeenkomt.
+function resolveToken() {
+  if (process.env.CHRONICLE_TOKEN) return process.env.CHRONICLE_TOKEN;
+  try {
+    return require("fs").readFileSync(require("path").join(__dirname, "data", "token.txt"), "utf8").trim();
+  } catch {
+    return "";
+  }
+}
+const CHRONICLE_TOKEN = resolveToken();
 
 async function apiRequest(basePath, path, options = {}) {
   const headers = {

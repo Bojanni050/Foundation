@@ -19,6 +19,7 @@ cd ..\server
 call npm install
 node ingestPolicy.test.js
 node ingestBridge.test.js
+node auth.test.js
 
 echo.
 echo Setup compleet. Start de server met: cd server ^&^& npm start

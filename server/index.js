@@ -153,10 +153,15 @@ app.use(express.json({ limit: "10mb" }));
 // loopback. Mounted before settingsRouter so these more specific prefixes
 // get first crack at matching; settingsRouter's own paths (token, status,
 // embedding-model, seed) don't overlap with them and fall through untouched.
-app.use("/api/settings/capture-activity", proxyToMemory);
+// requireAuth sits HERE, at the capture-process boundary: the memory-process
+// itself stays unauthenticated (it binds loopback and is never directly
+// reachable), so this proxy is the one place the public edge is guarded.
+app.use("/api/settings/capture-activity", requireAuth, proxyToMemory);
 // UI-beheer van de Hindsight-pijp en reflectie-engine (lees/schrijf/nu-
 // uitvoeren) — lives in het memory-proces, waar de jobs zelf ook draaien.
-app.use("/api/settings/integrations", proxyToMemory);
+// Auth hier, op de publieke rand: deze routes schrijven integratie-config
+// (o.a. LLM-endpoints) en starten betaalde runs — nooit een losse deur.
+app.use("/api/settings/integrations", requireAuth, proxyToMemory);
 // Ingestie/capture-logdashboard: data-endpoint (routes/ingestLogs.js) en
 // de statische pagina (public/index.html, op /ui). De pagina vraagt bij
 // eerste gebruik om de bearer-token en bewaart die in localStorage —
@@ -164,9 +169,9 @@ app.use("/api/settings/integrations", proxyToMemory);
 app.use("/api/ingest-logs", require("./routes/ingestLogs"));
 app.use("/ui", express.static(path.join(__dirname, "public")));
 
-app.use("/api/persona", proxyToMemory);
-app.use("/api/memory", proxyToMemory);
-app.post("/api/objects/:objectId/embed", proxyToMemory);
+app.use("/api/persona", requireAuth, proxyToMemory);
+app.use("/api/memory", requireAuth, proxyToMemory);
+app.post("/api/objects/:objectId/embed", requireAuth, proxyToMemory);
 
 app.use("/api/settings", settingsRouter);
 app.use("/api/settings/chatgpt-import", chatgptImportRouter);
@@ -210,8 +215,12 @@ app.post("/api/objects/import", requireAuth, (req, res) => {
   res.status(201).json({ success: true, objectId });
 });
 
-// Web app → pull queued objects (localhost binding is the safety boundary)
-app.get("/api/inbox", (_req, res) => {
+// Web app → pull queued objects. Bearer-token now required: with
+// CHRONICLE_HOST on e.g. the tailnet, the loopback binding alone no longer
+// covers these — the inbox carries raw capture content and DELETE would
+// silently drop it. (Legacy bridge; disappears with the /api/ingest/*
+// migration, see README "Bruggetje".)
+app.get("/api/inbox", requireAuth, (_req, res) => {
   res.json(readInbox());
 });
 
@@ -223,7 +232,7 @@ app.get("/api/inbox", (_req, res) => {
 // writeInbox() are synchronous, doing both within one handler — with no
 // `await` in between — can't be interleaved by another request in Node's
 // single-threaded event loop, so exactly one caller ever receives each item.
-app.post("/api/inbox/claim", (_req, res) => {
+app.post("/api/inbox/claim", requireAuth, (_req, res) => {
   const items = readInbox();
   writeInbox([]);
   // Visibility-only mirror into the memory-process's activity ring buffer
@@ -239,7 +248,7 @@ app.post("/api/inbox/claim", (_req, res) => {
 });
 
 // Web app → clear synced entries
-app.delete("/api/inbox", (_req, res) => {
+app.delete("/api/inbox", requireAuth, (_req, res) => {
   writeInbox([]);
   res.json({ success: true });
 });
@@ -281,7 +290,14 @@ startMemoryProcess();
 const server = app.listen(PORT, HOST, () => {
   console.log(`\n  Chronicle local API running at http://${HOST}:${PORT}`);
   console.log(`  Token: ${TOKEN}`);
-  console.log(`  (paste this token into the extension popup & the app Settings)\n`);
+  console.log(`  (paste this token into the extension popup & the app Settings)`);
+  if (!["127.0.0.1", "localhost", "::1"].includes(HOST)) {
+    console.log(`  ⚠ Binding outside loopback: every API route now enforces the bearer token`);
+    console.log(`    (memory/persona/inbox/ingest), and GET /api/settings/token is`);
+    console.log(`    loopback-only — hand out server/data/token.txt out-of-band.\n`);
+  } else {
+    console.log("");
+  }
 });
 
 function shutdown() {

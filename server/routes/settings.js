@@ -1,14 +1,19 @@
 const express = require("express");
 const { pool } = require("../db");
-const { TOKEN } = require("../auth");
+const { TOKEN, requireAuth, requireLoopback } = require("../auth");
 const { getModel: getEmbeddingModel, setModel: setEmbeddingModel, MODEL_OPTIONS } = require("../embedding");
 const { reembedAllRows } = require("../reembed");
 const { getResourceUsage } = require("../resourceUsage");
 
 const router = express.Router();
 
-// GET /api/settings/token
-router.get("/token", (_req, res) => {
+// GET /api/settings/token — de bootstrap voor de UI-auto-fill. Loopback-only:
+// op de machine die Foundation draait blijft de settingspagina hem automatisch
+// opvragen; vanaf een ander interface (Tailscale-binding, reverse proxy) geeft
+// dit 403 terug, want anders kon elke tailnet-passer hier de sleutel tot alles
+// halen. Vanuit andere omgevingen wordt de token uit de hand doorgegeven (zie
+// DEPLOYMENT.md §4).
+router.get("/token", requireLoopback, (_req, res) => {
   res.json({ token: TOKEN });
 });
 
@@ -66,6 +71,12 @@ router.get("/embedding-model", (_req, res) => {
   res.json({ model: getEmbeddingModel(), options: MODEL_OPTIONS });
 });
 
+// Alles onder deze regel eist de bearer-token: het wijzigen van het
+// embedding-model (trigger een volledige re-embed) en seed (wist
+// persona-data). De read-only status-endpoints hierboven blijven open als
+// health-uitzondering (beleid: DEPLOYMENT.md §3).
+router.use(requireAuth);
+
 // PATCH /api/settings/embedding-model
 router.patch("/embedding-model", (req, res) => {
   try {
@@ -88,7 +99,6 @@ router.patch("/embedding-model", (req, res) => {
 
 // POST /api/settings/seed — Populate persona database tables with rich demo data
 router.post("/seed", async (req, res) => {
-  const { pool } = require("../db");
   const { embed } = require("../embedding");
 
   try {

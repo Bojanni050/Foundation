@@ -30,5 +30,8 @@ node ingestPolicy.test.js
 echo "==> Ingest-bridge-tests draaien"
 node ingestBridge.test.js
 
+echo "==> Auth-tests draaien"
+node auth.test.js
+
 echo ""
 echo "Setup compleet. Start de server met: cd server && npm start"

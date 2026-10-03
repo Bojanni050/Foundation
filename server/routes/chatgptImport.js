@@ -3,16 +3,21 @@
 // every conversation to /api/objects/import. Chronicle spawns/tracks it here
 // (see chatgptImportManager.js) similarly to how it manages the memory-process.
 const express = require("express");
+const { requireAuth } = require("../auth");
 const { startBulkImport, stopBulkImport, getStatus } = require("../chatgptImportManager");
 
 const router = express.Router();
 
+// GET /status blijft open als read-only health-uitzondering (zelfde beleid als
+// de status-GET's in routes/settings.js); start/stop zijn mutating — start
+// gooit een zware Playwright-importer aan die de hele pijp vulde zonder
+// tokenplicht hier.
 router.get("/status", (_req, res) => {
   res.json(getStatus());
 });
 
 // POST /api/settings/chatgpt-import/start  { limit?: number, headless?: boolean }
-router.post("/start", async (req, res) => {
+router.post("/start", requireAuth, async (req, res) => {
   const { limit, headless, provider, exportPath } = req.body || {};
   if (limit !== undefined && (!Number.isInteger(limit) || limit <= 0)) {
     return res.status(400).json({ error: "limit must be a positive integer" });
@@ -33,7 +38,7 @@ router.post("/start", async (req, res) => {
   res.json(result);
 });
 
-router.post("/stop", (_req, res) => {
+router.post("/stop", requireAuth, (_req, res) => {
   const result = stopBulkImport();
   if (!result.stopped) return res.status(409).json(result);
   res.json(result);

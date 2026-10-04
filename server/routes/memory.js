@@ -15,6 +15,7 @@ const {
   transitionKnowledgeGap,
 } = require("../epistemicPolicy");
 const { prepareEpisodeInput } = require("../episodePolicy");
+const { decorateEpisodeWithApp } = require("../observedApp");
 const { embed } = require("../embedding");
 const { temporalFit, sourceQualityFromEvidence, confidenceScore, combinedScore } = require("../retrievalPolicy");
 const { buildMemoryExport } = require("../memoryExport");
@@ -258,13 +259,28 @@ router.get("/episodes/:id", async (req, res) => {
 // against currently-active facts. Without ?since, returns everything —
 // fine for small archives, but callers doing periodic reflection should
 // always pass their own last-run watermark.
+//
+// De LEFT JOIN op ingest_object is ADDITIEF: de episode-rij zelf blijft
+// ongewijzigd (bevroren observatie), er komen alleen twee afgeleide velden
+// bij — observed_app en observed_window — uit het titel/tags-contract van
+// capture-rs (server/observedApp.js). Zonder ?with_source=1 blijven die
+// kolommen buiten de respons, zodat bestaande consumenten (de reflectie-
+// engine) exact hetzelfde rijenobject blijven zien als voorheen.
 router.get("/episodes", async (req, res) => {
-  const { since } = req.query;
+  const { since, with_source } = req.query;
+  const wantsSource = with_source === "1" || with_source === "true";
+  const select = wantsSource
+    ? `SELECT ep.*, io.title AS source_title, io.tags AS source_tags
+       FROM episode ep
+       LEFT JOIN ingest_object io ON ep.bron_object_id = ('ingest:' || io.id)`
+    : "SELECT ep.* FROM episode ep";
+  const where = since ? "WHERE ep.captured_at > $1 " : "";
+  const order = "ORDER BY ep.captured_at ASC";
   const query = since
-    ? { text: "SELECT * FROM episode WHERE captured_at > $1 ORDER BY captured_at ASC", values: [since] }
-    : { text: "SELECT * FROM episode ORDER BY captured_at ASC", values: [] };
+    ? { text: `${select} ${where}${order}`, values: [since] }
+    : { text: `${select} ${order}`, values: [] };
   const { rows } = await pool.query(query.text, query.values);
-  res.json(rows);
+  res.json(wantsSource ? rows.map(decorateEpisodeWithApp) : rows);
 });
 
 // GET /api/memory/sources/:bronObjectId/usage — read-only bridge across the

@@ -6,14 +6,7 @@
 // caller.
 
 const express = require("express");
-const {
-  getIntegrationConfig,
-  updateIntegrationConfig,
-  maskConfigForUi,
-} = require("../integrationConfig");
-const { runHindsightSync } = require("../hindsightSync");
-const { runHypothesisReflectionSync } = require("../hypothesisReflectionSync");
-const { createHindsightClient } = require("../hindsightClient");
+const { getIntegrationConfig, updateIntegrationConfig, maskConfigForUi } = require("../integrationConfig");
 const { pool } = require("../db");
 
 const router = express.Router();
@@ -62,44 +55,18 @@ router.patch("/", async (req, res) => {
   }
 });
 
-// POST /api/settings/integrations/hindsight/run — handmatige pijp-run.
+// POST /api/settings/integrations/hindsight/run — UITGESCHAKELD: Foundation
+// sync't niet meer naar de gedeelde Hindsight-bank (zie jobs.js). Bewust 410
+// (niet verwijderd), zodat een oude UI-knop een verklaarbare fout krijgt in
+// plaats van stil te falen.
 router.post("/hindsight/run", async (req, res) => {
-  const config = await getIntegrationConfig();
-  if (!config.hindsightUrl || !config.hindsightBankId) {
-    return res.status(409).json({ error: "Hindsight-pijp is niet geconfigureerd" });
-  }
-  let client;
-  try {
-    client = createHindsightClient({ baseUrl: config.hindsightUrl, bankId: config.hindsightBankId });
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-  try {
-    await runHindsightSync({ client });
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  return res.status(410).json({ error: "Hindsight-pijp is uitgeschakeld: Foundation sync't niet naar de gedeelde bank" });
 });
 
-// POST /api/settings/integrations/reflection/run — handmatige engine-run.
+// POST /api/settings/integrations/reflection/run — UITGESCHAKELD: zelfde reden
+// als hierboven (reflectie-engine draait niet meer). Bewust 410.
 router.post("/reflection/run", async (req, res) => {
-  const config = await getIntegrationConfig();
-  if (!config.reflectionLlmApiKey || !config.reflectionLlmBaseUrl || !config.reflectionLlmModel) {
-    return res.status(409).json({ error: "Reflectie-engine is niet geconfigureerd" });
-  }
-  const { reflectorFromEnv } = require("../hypothesisReflectionSync");
-  const reflector = reflectorFromEnv({
-    apiKey: config.reflectionLlmApiKey,
-    baseUrl: config.reflectionLlmBaseUrl,
-    model: config.reflectionLlmModel,
-  });
-  try {
-    await runHypothesisReflectionSync({ reflector });
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  return res.status(410).json({ error: "Reflectie-engine is uitgeschakeld in Foundation" });
 });
 
 module.exports = router;

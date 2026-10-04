@@ -73,9 +73,7 @@ dat zit aan de capture-kant; Foundation registreert wat de pijp bereikt.
 
 ## Databases-beleid
 
-Één epistemische bron. Alles daarbuiten is buffer (Capture RS: herstart = leeg
-is oké), cache (Hindsight: herbouwbaar mét provenance) of vendor-intern.
-Chronicle start op 0 — geen V1-backfill.
+Één epistemische bron, en die bron is Foundation.
 
 ## Draaien
 

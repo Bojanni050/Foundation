@@ -16,3 +16,7 @@ npm-debug.log*
 tools/chatgpt_bulk_import/imported.json
 tools/chatgpt_bulk_import/.*_profile/
 __pycache__/
+
+# FreeFileSync-metadata (lokale sync-state, nooit commiten)
+*.ffs_db
+sync.ffs_db

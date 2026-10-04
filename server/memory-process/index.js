@@ -78,10 +78,11 @@ app.get("/api/settings/capture-activity", (_req, res) => {
 // bestaande /api/settings/integrations-proxy in server/index.js.
 app.use("/api/settings/integrations", require("./integrationRoutes"));
 
-// Start background schedulers (consolidator, auto-heal). If either hangs or
-// crashes, only this process is affected — Chronicle's capture endpoints
-// (ingestie, attachments) keep responding regardless, since they
-// live in a different OS process.
+// Start background schedulers (auto-heal, ingest-bridge). Consolidator,
+// Hindsight-pijp en reflectie-engine zijn uitgeschakeld (zie jobs.js) —
+// als een job hangt of crasht is alleen dit proces geraakt, en Chronicle's
+// capture endpoints (ingestie, attachments) blijven hoe dan ook reageren,
+// omdat ze in een ander OS-proces leven.
 startBackgroundJobs();
 
 const server = app.listen(PORT, HOST, () => {

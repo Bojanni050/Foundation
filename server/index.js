@@ -33,7 +33,7 @@ const ingestRouter = require("./routes/ingest");
 // Auto-Heal job. Same model, same file, two separate copies in memory for
 // no benefit — proxying instead means exactly one process ever loads it.
 
-// The consolidator/auto-heal jobs and the persona routes now live in their
+// The auto-heal/ingest-bridge jobs and the persona routes now live in their
 // own OS process (server/memory-process/index.js) — spawned and proxied
 // below. This is the capture/memory process split: a hang or crash on the
 // memory side can no longer take the ingest/attachments endpoints
@@ -155,10 +155,13 @@ app.use(express.json({ limit: "10mb" }));
 // itself stays unauthenticated (it binds loopback and is never directly
 // reachable), so this proxy is the one place the public edge is guarded.
 app.use("/api/settings/capture-activity", requireAuth, proxyToMemory);
-// UI-beheer van de Hindsight-pijp en reflectie-engine (lees/schrijf/nu-
-// uitvoeren) — lives in het memory-proces, waar de jobs zelf ook draaien.
+// UI-beheer van integratie-config (lees/schrijf) — lives in het
+// memory-proces. De achtergrondjobs erachter (Hindsight-pijp,
+// reflectie-engine, consolidator-promotie) zijn uitgeschakeld: Foundation
+// vuurt niet tegen de gedeelde Hindsight-bank (zie server/jobs.js); de
+// handmatige .../run-routes antwoorden 410 Gone.
 // Auth hier, op de publieke rand: deze routes schrijven integratie-config
-// (o.a. LLM-endpoints) en starten betaalde runs — nooit een losse deur.
+// (o.a. LLM-endpoints) — nooit een losse deur.
 app.use("/api/settings/integrations", requireAuth, proxyToMemory);
 // Ingestie/capture-logdashboard: data-endpoint (routes/ingestLogs.js) en
 // de statische pagina (public/index.html, op /ui). De pagina vraagt bij
@@ -186,7 +189,7 @@ app.use("/api/attachments", attachmentsRouter);
 // met Foundation; de oude Chronicle-extensie die hier postte is verleden.
 app.use("/api/ingest", ingestRouter);
 
-// Spawn the memory-process (consolidator/auto-heal jobs, persona routes,
+// Spawn the memory-process (auto-heal/ingest-bridge jobs, persona routes,
 // the embedding pipeline) as its own OS process. stdio: "inherit" so its
 // console output still shows up in the same terminal as Chronicle's own
 // (concurrently already merges frontend+server output the same way).

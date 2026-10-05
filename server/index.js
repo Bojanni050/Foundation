@@ -145,13 +145,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Bronbestand-upload draagt ruwe bytes (kan honderden MB's zijn), geen JSON —
-// de globale JSON-parser moet hem dus overslaan, anders faalt de body met
-// "Bad Request" nog vóór de route. De route zelf gebruikt express.raw.
+// Ruwe-byte-uploads (bronbestanden én attachments) dragen geen JSON — de
+// globale JSON-parser moet ze overslaan, anders faalt de body met "Bad
+// Request" nog vóór de route (die zelf express.raw gebruikt).
+const RAW_UPLOAD_PREFIXES = ["/api/source-files", "/api/attachments"];
 app.use(
   express.json({
     limit: "10mb",
-    type: (req) => !req.path.startsWith("/api/source-files"),
+    type: (req) => !RAW_UPLOAD_PREFIXES.some((prefix) => req.path.startsWith(prefix)),
   })
 );
 

@@ -31,3 +31,10 @@
     (kolommen/types kloppen), daarna opgeruimd.
   - Validatie: volledige `server/`-suite → 20 testbestanden geslaagd;
     `node --check` + require-check ok.
+  - Live tegen de VPS: blob met sha256 `56ffe09b…` correct opgeslagen en
+    terugleesbaar; idempotent (tweede POST `200`/`reused:true`). Bevinding: de
+    globale `express.json()` vóór de raw-route gaf 400 op JSON-gelabelde bodies
+    → skip voor `/api/source-files`; en een herlevering maakte een tweede
+    document-observatie → nu idempotent op sha256 (zelfde `ingestObjectId`).
+    Beide gefixt en opnieuw bewezen (`8867547f…`: 201 → 200, zelfde id).
+  - Alle test-observaties, -episodes en -blobs daarna opgeruimd (trigger terug op `O`).

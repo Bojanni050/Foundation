@@ -6,7 +6,7 @@ in via één API; `mcpServer.js` maakt alle MCP-clients (incl. AI-agents)
 inplugbaar.
 
 ```
-Capture RS (repo: capture-rs) · Diary-opnames · chatgpt-imports · ...
+Capture RS (repo: capture-rs) · Diary-opnames · Chronicle-capture · ...
                         ↓ Ingestie Gateway (/api/ingest/*, status = observation)
              FOUNDATION  (opslag + epistemiek + API)
                         ↑ één API (mcpServer.js)
@@ -21,10 +21,9 @@ Foundation-Chronicle blijft ongewijzigd als archief liggen.
 **Meegevallen:**
 - Epistemiek: epistemicPolicy, statusPromotion, episodePolicy, retrievalPolicy,
   memoryIntegrity, memoryMaintenance + tests
-- Import: chatgptImportManager + route
 - Opslag: db.js + db/ (Drizzle, incl. migrations), contentHash, embedding
 - Server: slanke index.js (Hermes/4579-route en connectors weg), auth,
-  routes (memory, attachments, settings, embedding, chatgptImport)
+  routes (memory, attachments, settings, embedding)
 - mcpServer.js + test
 - `insight/`: het persona-subsysteem als HindsightProvider-alternatief
   (kandidaat, niet actief — zie server/insight/README.md)
@@ -33,16 +32,16 @@ Foundation-Chronicle blijft ongewijzigd als archief liggen.
 (PersonaDialog), Python memory/-laag (Hermes-fossiel), de Hermes-kabel
 (poort 4579), connectors-route (WordPress-erfgoed), Capacities-frontend.
 
-**Bulk-importer (4 okt 2026 verhuisd):** de importer staat nu hier zelf, in
-`tools/chatgpt_bulk_import/`, en post via de Ingestie Gateway
-(`POST /api/ingest/chat`) — same dedup, same field contract. Het oude
-inbox/memory-process-patroon (inboxStore, /api/inbox, /api/objects/import)
-is daarmee **gesloopt**: de Gateway is de enige pijp, de inbox bestond niet
-eens meer op de VPS (0 items). Een achtergebleven client die nog op
-`/api/objects/import` wacht, bestaat niet: de enige browser-extensie in de
-stack is die van capture-rs, en die praat alleen met zijn eigen lokale
-bridge (`127.0.0.1:8765`), nooit met Foundation. De oude Chronicle-extensie
-die vroeger naar de inbox postte, is archief-verleden.
+**Bulk-importer (verwijderd).** De importer stond hier kort zelf, in
+`tools/chatgpt_bulk_import/`, en postte via de Ingestie Gateway
+(`POST /api/ingest/chat`). Hij is op 5 okt 2026 uit Foundation gehaald: capture
+is de rol van de capture-kant, niet van de ontvanger (zie
+`Gaia-Documentation/capture-chronicle.md`). **Chronicle-Gaia** is nu de enige
+capture-path — het importeert de exports en post de ruwe chat naar
+`/api/ingest/chat`. Foundation registreert alleen wat de officiële pijp bereikt.
+Het oudere inbox/memory-process-patroon (inboxStore, /api/inbox,
+/api/objects/import) was al **gesloopt**: de Gateway is de enige pijp. Een
+achtergebleven client die nog op `/api/objects/import` wacht, bestaat niet.
 
 ## Ingestie Gateway (25 sep 2026)
 
@@ -86,6 +85,6 @@ cd server && npm test                   # alle *.test.js, één poort
 Auth-beleid in het kort: elke API-route (geheugen, persona, inbox, ingestie,
 schrijvende settings) eist de bearer-token uit `server/data/token.txt`; alleen
 read-only health-GET's (`/api/settings/status`, `resource-usage`,
-embedding-model-GET, chatgpt-import-status) zijn open, en
+embedding-model-GET) zijn open, en
 `GET /api/settings/token` (UI-auto-fill) is uitsluitend via localhost
 opvraagbaar. Zie DEPLOYMENT.md §3/§4.

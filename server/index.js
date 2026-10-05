@@ -22,7 +22,6 @@ const { Readable } = require("stream");
 const { TOKEN, requireAuth } = require("./auth");
 
 const settingsRouter = require("./routes/settings");
-const chatgptImportRouter = require("./routes/chatgptImport");
 const attachmentsRouter = require("./routes/attachments");
 const ingestRouter = require("./routes/ingest");
 // Object embedding (POST /api/objects/:objectId/embed) is proxied to the
@@ -175,7 +174,6 @@ app.use("/api/memory", requireAuth, proxyToMemory);
 app.post("/api/objects/:objectId/embed", requireAuth, proxyToMemory);
 
 app.use("/api/settings", settingsRouter);
-app.use("/api/settings/chatgpt-import", chatgptImportRouter);
 app.use("/api/attachments", attachmentsRouter);
 
 // Ingestie Gateway — server-side ingest met statusmarkering `observation` bij

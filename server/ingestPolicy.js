@@ -28,7 +28,7 @@ const OBJECT_TYPES = ["chat", "capture", "document", "diary"];
 // Per-entry-point field contract. required = 400 bij afwezigheid;
 // allowed = meegenomen na vormvalidatie; refused = 400 bij aanwezigheid.
 const CONTRACTS = {
-  // AI-chats (ChatGPT/Claude/Gemini via extension of bulk-import). The only
+  // AI-chats (Chronicle capture, extensie). The only
   // type that may carry `turns` — a conversation, not a document.
   chat: {
     sourceDefault: "chat-import",

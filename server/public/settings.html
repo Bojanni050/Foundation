@@ -232,7 +232,7 @@ async function loadBronnen() {
     const byType = {};
     for (const o of logs.objects || []) byType[o.object_type] = (byType[o.object_type] || 0) + 1;
     const BESCHRIJVING = {
-      "chat": { naam: "AI-chats (extensie, bulk-import)", endpoint: "/api/ingest/chat" },
+      "chat": { naam: "AI-chats (Chronicle capture)", endpoint: "/api/ingest/chat" },
       "capture": { naam: "Desktop-capture (Capture RS)", endpoint: "/api/ingest/capture" },
       "document": { naam: "Documenten", endpoint: "/api/ingest/document" },
       "diary": { naam: "Audio/video-log (Diary)", endpoint: "/api/ingest/diary" },

@@ -54,10 +54,10 @@ als subprocess en herstart het bij crash.
 - **4577 en 4578 zijn loopback-only** (`127.0.0.1`, hardcoded in
   `server/index.js` en `server/memory-process/index.js`).
 - **Alle API-routes eisen de bearer-token** — geheugen/persona (via de
-  capture-proxy), ingestie, import-start en de config-schrijvers.
+  capture-proxy), ingestie en de config-schrijvers.
   Uitzonderingen, bewust read-only health: `GET /api/settings/status`,
-  `GET /api/settings/resource-usage`, `GET /api/settings/embedding-model` en
-  `GET /api/settings/chatgpt-import/status`.
+  `GET /api/settings/resource-usage` en
+  `GET /api/settings/embedding-model`.
 - **`GET /api/settings/token` is alleen via loopback opvraagbaar** (de
   UI-auto-fill werkt daarmee op de machine zelf; vanaf een tailnet-IP komt
   403 terug, zodat de sleutel tot alles niet bij de deur hangt).
@@ -185,8 +185,7 @@ blijft verboden; het memory-proces (4578) blijft altijd loopback.
 **Let op na deze wijziging:** alle API-routes (geheugen, persona, ingestie)
 eisen dan de bearer-token, en `/api/settings/token` is vanaf het tailnet
 zelf niet meer bereikbaar (403) — plak de token dus uit de hand in de
-clients. De legacy-inboxbrug is intussen gesloopt (4 okt 2026): de
-bulk-importer staat in `tools/` van deze repo en post naar
-`/api/ingest/chat`. Op de VPS vereist de importer-regeling daar wel een
-Python + Playwright-install (browser); zonder die tools faalt de preflight
-netjes — de UI-importknop is in die setup een bewuste dode knop.
+clients. De legacy-inboxbrug is gesloopt (4 okt 2026) én de ingebouwde
+bulk-importer is op 5 okt 2026 uit Foundation verwijderd (capture hoort bij
+de capture-kant). **Chronicle-Gaia** is de enige capture-path en post ruwe
+chats naar `/api/ingest/chat`; Foundation registreert alleen wat binnenkomt.

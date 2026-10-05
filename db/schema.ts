@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
+  bigint,
   boolean,
   check,
   integer,
@@ -443,6 +444,28 @@ export const ingestObject = pgTable("ingest_object", {
     .on(table.ingestedAt)
     .where(sql`memory_processed_at IS NULL`),
 ]);
+
+// --------------------------------------------------------------------------
+// Source blobs — het originele exportbestand waaruit chats zijn geparseerd.
+//
+// Foundation is de EIGENAAR van het origineel; Chronicle houdt een identieke
+// byte-for-byte kopie (zie Gaia-Documentation/capture-chronicle.md). De bytes
+// staan in de blob-store (server/blobStore.js, content-addressed op sha256),
+// nooit in deze tabel — hier staat alleen de identiteit en de provenance.
+//
+// De blob hangt aan de `document`-observatie die dezelfde levering oplevert
+// (ingest_object, objectType "document"): het document draagt de metadata,
+// de blob de bytes. Eén bronbestand kan meerdere keren geleverd worden; de
+// sha256 is de idempotentie-identiteit (ON CONFLICT DO NOTHING).
+// --------------------------------------------------------------------------
+export const sourceBlob = pgTable("source_blob", {
+  hash: text("hash").primaryKey(), // sha256 van de bytes — de identiteit
+  ingestObjectId: uuid("ingest_object_id").notNull(),
+  size: bigint("size", { mode: "number" }).notNull(),
+  filename: text("filename"),
+  mimeType: text("mime_type").notNull().default("application/octet-stream"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 // Consolidation watermark (Stash-geïnspireerd checkpoint-patroon, migratie
 // 0021): één singleton-rij (vast sentinel-UUID) met het tijdstip van de

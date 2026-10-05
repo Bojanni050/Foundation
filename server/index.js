@@ -23,6 +23,7 @@ const { TOKEN, requireAuth } = require("./auth");
 
 const settingsRouter = require("./routes/settings");
 const attachmentsRouter = require("./routes/attachments");
+const sourceFilesRouter = require("./routes/sourceFiles");
 const ingestRouter = require("./routes/ingest");
 // Object embedding (POST /api/objects/:objectId/embed) is proxied to the
 // memory-process below, not handled here — it used to be required and
@@ -175,6 +176,7 @@ app.post("/api/objects/:objectId/embed", requireAuth, proxyToMemory);
 
 app.use("/api/settings", settingsRouter);
 app.use("/api/attachments", attachmentsRouter);
+app.use("/api/source-files", sourceFilesRouter);
 
 // Ingestie Gateway — server-side ingest met statusmarkering `observation` bij
 // binnenkomst (typeward entry-points, zie routes/ingest.js). Dit is de enige

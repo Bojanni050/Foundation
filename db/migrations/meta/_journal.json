@@ -176,6 +176,13 @@
       "when": 1790332800003,
       "tag": "0024_add_integration_config",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790332800004,
+      "tag": "0025_add_source_blob",
+      "breakpoints": true
     }
   ]
 }

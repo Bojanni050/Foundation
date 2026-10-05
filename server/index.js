@@ -145,7 +145,15 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json({ limit: "10mb" }));
+// Bronbestand-upload draagt ruwe bytes (kan honderden MB's zijn), geen JSON —
+// de globale JSON-parser moet hem dus overslaan, anders faalt de body met
+// "Bad Request" nog vóór de route. De route zelf gebruikt express.raw.
+app.use(
+  express.json({
+    limit: "10mb",
+    type: (req) => !req.path.startsWith("/api/source-files"),
+  })
+);
 
 // Persona (and embedding) requests are forwarded to the memory-process over
 // loopback. Mounted before settingsRouter so these more specific prefixes

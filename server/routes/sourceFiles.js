@@ -26,7 +26,7 @@ const blobStore = createBlobStore();
 // MB's zijn. Afgestemd op een ruime but bounded body; de VPS regelt de rest.
 const MAX_SIZE = 512 * 1024 * 1024;
 
-router.post("/", requireAuth, express.raw({ type: "*/*", limit: "512mb" }), async (req, res) => {
+router.post("/", requireAuth, express.raw({ type: () => true, limit: "512mb" }), async (req, res) => {
   if (!Buffer.isBuffer(req.body) || !req.body.length) {
     return res.status(400).json({ error: "empty body" });
   }
@@ -59,6 +59,23 @@ router.post("/", requireAuth, express.raw({ type: "*/*", limit: "512mb" }), asyn
   const hash = contentHash(summary);
 
   try {
+    // Idempotent op de blob-identiteit: een al geregistreerde blob levert geen
+    // tweede observatie op — de eerste blijft de bron van waarheid.
+    const existing = await pool.query(
+      "SELECT ingest_object_id FROM source_blob WHERE hash = $1",
+      [blob.hash],
+    );
+    if (existing.rows[0]) {
+      return res.status(200).json({
+        hash: blob.hash,
+        size: blob.size,
+        filename: path.basename(filename) || null,
+        mimeType: blob.mimeType,
+        reused: true,
+        ingestObjectId: existing.rows[0].ingest_object_id,
+      });
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO ingest_object (object_type, source, title, content, url, content_hash, status)
        VALUES ('document', $1, $2, $3, $4, $5, 'observation')

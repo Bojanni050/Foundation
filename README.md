@@ -78,9 +78,10 @@ dat zit aan de capture-kant; Foundation registreert wat de pijp bereikt.
 ## Status van de epistemische laag
 
 Foundation heeft de tabellen `episode`, `evidence`, `hypothesis`, `fact` en
-`knowledge_gap`, en de routes om ze met de hand te gebruiken (voorstellen,
-evidence koppelen, bevestigen en verwerpen door een mens, onder
-`/api/memory/*`). Alleen een mens bevestigt.
+`knowledge_gap`, en in de code ook routes om ze met de hand te gebruiken
+(`/api/memory/*`, incl. bevestigen en verwerpen). In de praktijk loopt het
+bevestigen niet hier maar via Cognition in Gaia-Cloud (GaiaChat,
+`POST /cognition/hypotheses/:id/confirm`). Alleen een mens bevestigt.
 
 De automatische laag draait niet meer: de reflectie-engine, de promotie
 (observation naar hypothesis) en de Hindsight-sync worden niet gestart

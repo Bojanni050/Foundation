@@ -1,14 +1,19 @@
 # Foundation
 
-**Opslag + epistemiek + één API — de stekkerdoos.** Foundation is hét geheugen:
-de enige epistemische bron ("dit is geregistreerd"). Alle clients pluggen hier
-in via één API; `mcpServer.js` maakt alle MCP-clients (incl. AI-agents)
-inplugbaar.
+**Bron + opslag + één API — de stekkerdoos.** Foundation is de onveranderlijke
+bronlaag ("dit is geregistreerd"): observaties en episodes, met herkomst. Alle
+clients pluggen hier in via één API; `mcpServer.js` maakt alle MCP-clients (incl.
+AI-agents) inplugbaar.
+
+Wat Gaia daaruit afleidt (hypotheses, patronen, begrip) leeft niet hier maar in
+Gaia-Cloud (`services/cognition`). De epistemische tabellen en de handmatige
+routes blijven in Foundation bestaan, maar de automatische laag staat uit; zie
+*Status van de epistemische laag* hieronder.
 
 ```
 Capture RS (repo: capture-rs) · Diary-opnames · Chronicle-capture · ...
                         ↓ Ingestie Gateway (/api/ingest/*, status = observation)
-             FOUNDATION  (opslag + epistemiek + API)
+             FOUNDATION  (bron + opslag + API)
                         ↑ één API (mcpServer.js)
 Clients:  Chronicle (notes/zoek/validatie-UI) · Gaia (geest, via Insight/Logos)
 ```
@@ -70,9 +75,26 @@ Regels die in code worden afgedwongen, niet in prompts:
 Opslag: tabel `ingest_object` (Drizzle-migratie 0019). Geen ruisfilter hier —
 dat zit aan de capture-kant; Foundation registreert wat de pijp bereikt.
 
+## Status van de epistemische laag
+
+Foundation heeft de tabellen `episode`, `evidence`, `hypothesis`, `fact` en
+`knowledge_gap`, en de routes om ze met de hand te gebruiken (voorstellen,
+evidence koppelen, bevestigen en verwerpen door een mens, onder
+`/api/memory/*`). Alleen een mens bevestigt.
+
+De automatische laag draait niet meer: de reflectie-engine, de promotie
+(observation naar hypothesis) en de Hindsight-sync worden niet gestart
+(`server/jobs.js`), en `POST /api/settings/integrations/reflection/run` en
+`.../hindsight/run` geven `410 Gone`. Reden: ze vuurden tegen dezelfde gedeelde
+Hindsight-bank. Wat wel draait: embeddings aanvullen (auto-heal) en
+gateway-rijen als episode bevriezen (ingest-bridge).
+
+Afgeleide kennis wordt dus afgehandeld door Gaia-Cloud (`services/cognition`),
+met Foundation als bron. Zie `docs/architecture.md` in Gaia-Cloud.
+
 ## Databases-beleid
 
-Één epistemische bron, en die bron is Foundation.
+Foundation is de enige bronlaag: wat er is gebeurd staat hier, onveranderd.
 
 ## Draaien
 

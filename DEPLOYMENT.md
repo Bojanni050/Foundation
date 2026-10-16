@@ -78,7 +78,12 @@ chronicle.example.com {
 }
 ```
 
-## 3b. Reflectie-pijp naar Hindsight (optioneel)
+## 3b. Reflectie-pijp naar Hindsight (UITGESCHAKELD)
+
+> **Staat uit.** Foundation synct niet meer naar de gedeelde Hindsight-bank
+> (`server/jobs.js` start de pijp niet; `POST .../hindsight/run` geeft
+> `410 Gone`). De rest van deze paragraaf beschrijft hoe de pijp werkte en blijft
+> staan voor het geval ze terugkomt. Instellen heeft nu geen effect.
 
 Foundation en Hindsight draaien op dezelfde VPS. De reflectie-pijp stuurt
 mens-bevestigde feiten (tabel `fact`) door naar Hindsight's bank, met
@@ -99,7 +104,12 @@ watermerk (`hindsight_progress`, migratie 0022) zorgt dat elk feit exact
 één keer aankomt; faalt Hindsight halverwege een batch, dan pakt de
 volgende run dezelfde feiten opnieuw. Zie `server/hindsightSync.js`.
 
-## 3c. Reflectie-engine (optioneel)
+## 3c. Reflectie-engine (UITGESCHAKELD)
+
+> **Staat uit.** De engine wordt niet gescheduled (`server/jobs.js`) en
+> `POST .../reflection/run` geeft `410 Gone`. `REFLECTION_LLM_*` instellen start
+> hem dus niet. De rest van deze paragraaf beschrijft hoe hij werkte, voor het
+> geval hij terugkomt.
 
 De engine uit `server/hypothesisReflectionSync.js` beoordeelt elke 15
 minuten nieuwe episodes tegen actieve feiten en stelt OPEN hypotheses

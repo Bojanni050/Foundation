@@ -14,8 +14,20 @@ const SOURCE_TYPE_BY_OBJECT_TYPE = {
   capture: "system-observation",
 };
 
+// Web-clips enter through the chat entry-point (a page has no provider
+// conversation), so object_type alone would label them chat-import. Their
+// provenance lives in source_provider; keep that distinction instead of
+// flattening a clipped page into an AI-chat import.
+const WEB_SOURCE_PROVIDER = "web";
+
 function mapIngestRowToEpisodeInput(row) {
-  const sourceType = SOURCE_TYPE_BY_OBJECT_TYPE[row.object_type];
+  const isWebClip =
+    row.object_type === "chat" &&
+    typeof row.source_provider === "string" &&
+    row.source_provider.trim().toLowerCase() === WEB_SOURCE_PROVIDER;
+  const sourceType = isWebClip
+    ? "web"
+    : SOURCE_TYPE_BY_OBJECT_TYPE[row.object_type];
   if (!sourceType) {
     throw new TypeError(
       `no episode sourceType mapping for object_type "${row.object_type}"`

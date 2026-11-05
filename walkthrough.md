@@ -38,3 +38,31 @@
     document-observatie → nu idempotent op sha256 (zelfde `ingestObjectId`).
     Beide gefixt en opnieuw bewezen (`8867547f…`: 201 → 200, zelfde id).
   - Alle test-observaties, -episodes en -blobs daarna opgeruimd (trigger terug op `O`).
+
+## 2026-11-06 (Episode-source `web` voor web-clips)
+
+- Findings:
+  - Chronicle-Gaia levert web-clips via `POST /api/ingest/chat` met
+    `sourceProvider: "web"` (het archiveert ze lokaal als type `web`). Foundation
+    kent alleen het `object_type` (`chat`) en maakte er daardoor een
+    `chat-import`-episode van; de herkomst "geknipte webpagina" ging verloren.
+  - De episode-source-enum (`episode_source_type`) had geen `web`, terwijl
+    `episodePolicy.test.js` die waarde juist als ongeldig voorbeeld gebruikte.
+- Conclusions:
+  - `web` is een eigen episode-source, geen AI-chat-import. De brug moet hem
+    daarom afleiden uit `source_provider` (alleen bij `object_type: chat`) in
+    plaats van uit `object_type` alleen — zonder de bestaande object_type-map
+    te veranderen.
+  - Enum uitbreiden met een `ALTER TYPE ... ADD VALUE IF NOT EXISTS`, zodat de
+    migratie idempotent is en bestaande episodes onaangeroerd blijven.
+- Actions:
+  - `db/schema.ts` + `server/episodePolicy.js` + `server/mcpServer.js`
+    (`create_episode`-zod): `web` toegevoegd aan de source-opties.
+  - Nieuw `db/migrations/0026_add_web_episode_source_type.sql` + journal-entry.
+  - `server/ingestBridgeMapping.js`: chat-rij met `source_provider = web`
+    → `sourceType: "web"`; overige object_types ongewijzigd.
+  - Tests: `episodePolicy.test.js` (web geldig, `webpage` ongeldig) en
+    `ingestBridge.test.js` (web-clip → web-episode). Volledige
+    `server/`-suite: 20 testbestanden geslaagd.
+  - Migratie nog niet toegepast op een database; `IF NOT EXISTS` maakt
+    herhaling veilig.

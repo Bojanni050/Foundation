@@ -175,7 +175,7 @@ server.registerTool(
       bronObjectId: z.string().describe("Id of the existing Chronicle object this observation comes from"),
       bronsoort: z.string().describe('Kind of source, e.g. "chat", "note", "document"'),
       fragment: z.string().describe("The actual quoted or closely paraphrased text"),
-      sourceType: z.enum(["chat-import", "document", "explicit-input", "system-observation"]),
+      sourceType: z.enum(["chat-import", "document", "explicit-input", "system-observation", "web"]),
       spreker: z.string().optional().describe("Who said it, if identifiable"),
       observedAt: z.string().optional().describe("ISO timestamp of when the source content itself occurred"),
       bronReferentie: z.string().optional().describe("Precise pointer within the source, e.g. a turn index"),

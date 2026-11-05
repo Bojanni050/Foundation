@@ -36,7 +36,12 @@ assert.notStrictEqual(
   "changing the frozen observation must produce another episode",
 );
 
-assert.throws(() => prepareEpisodeInput({ ...base, sourceType: "web" }), /sourceType/);
+assert.throws(() => prepareEpisodeInput({ ...base, sourceType: "webpage" }), /sourceType/);
+assert.strictEqual(
+  prepareEpisodeInput({ ...base, sourceType: "web" }).sourceType,
+  "web",
+  "web clips are a first-class episode source",
+);
 assert.throws(() => prepareEpisodeInput({ ...base, extractionConfidence: 101 }), /0 through 100/);
 assert.throws(() => prepareEpisodeInput({ ...base, observedAt: "not-a-date" }), /valid date-time/);
 

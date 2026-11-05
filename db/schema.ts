@@ -226,6 +226,7 @@ export const episodeSourceTypeEnum = pgEnum("episode_source_type", [
   "document",
   "explicit-input",
   "system-observation",
+  "web",
 ]);
 
 // A knowledge gap's own small lifecycle, independent of any one hypothesis.

@@ -43,6 +43,18 @@ test("chat row becomes an episode input with ingest provenance", () => {
   assert.strictEqual(input.conversationIdentity, ROW.provider_conversation_id);
 });
 
+test("web clip row becomes a web episode, not a chat-import", () => {
+  const input = mapIngestRowToEpisodeInput({
+    ...ROW,
+    source_provider: "web",
+    provider_conversation_id: null,
+    url: "https://example.com/article",
+  });
+  assert.strictEqual(input.sourceType, "web");
+  assert.strictEqual(input.bronsoort, "chat");
+  assert.strictEqual(input.bronReferentie, "https://example.com/article");
+});
+
 test("typeward: an unknown object_type fails loudly", () => {
   assert.throws(
     () => mapIngestRowToEpisodeInput({ ...ROW, object_type: "carrier-pigeon" }),

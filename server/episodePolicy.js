@@ -5,6 +5,7 @@ const EPISODE_SOURCE_TYPES = [
   "document",
   "explicit-input",
   "system-observation",
+  "web",
 ];
 
 function optionalText(value) {

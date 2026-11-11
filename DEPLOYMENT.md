@@ -187,10 +187,14 @@ echo "CHRONICLE_HOST=100.65.0.15" >> /opt/Foundation/.env
 pm2 restart chronicle
 ```
 
-De server bindt dan alléén op dat interface — het publieke internet komt
-er nog steeds niet op (Tailscale is WireGuard-versleuteld en alleen jouw
-masken komt erop), en de bearer-token blijft vereist. `0.0.0.0` is en
-blijft verboden; het memory-proces (4578) blijft altijd loopback.
+De server bindt op **loopback én** dat interface (twee listeners op hetzelfde
+poortnummer; 0.0.0.0 is en blijft verboden) — het publieke internet komt er
+nog steeds niet op (Tailscale is WireGuard-versleuteld en alleen jouw masken
+komt erop), en de bearer-token blijft vereist. Loopback-clients
+(mcpServer.js, de rook-test) blijven daardoor werken; mislukt de
+tailnet-binding omdat het IP bij boot nog niet bestaat, dan geeft dat alleen
+een waarschuwing in de log en blijft loopback draaien. Het memory-proces
+(4578) blijft altijd loopback.
 
 **Let op na deze wijziging:** alle API-routes (geheugen, persona, ingestie)
 eisen dan de bearer-token, en `/api/settings/token` is vanaf het tailnet

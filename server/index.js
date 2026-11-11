@@ -41,10 +41,10 @@ const ingestRouter = require("./routes/ingest");
 const MEMORY_HOST = "127.0.0.1";
 const MEMORY_PORT = process.env.MEMORY_PORT || 4578;
 
-// Loopback by default. CHRONICLE_HOST kan de binding verplaatsen naar één
-// specifieke privé-interface (bijv. het Tailscale-IP, zodat de UI/API binnen
-// het tailnet bereikbaar is) — maar nooit 0.0.0.0: alleen benoemde
-// interfaces, anders hangt alles aan het open internet.
+// CHRONICLE_HOST voegt een binding op één specifiek privé-interface toe
+// (bijv. het Tailscale-IP, zodat de UI/API binnen het tailnet bereikbaar
+// is); loopback blijft daarnaast altijd gebonden. Zie het listen-blok
+// hieronder: 0.0.0.0 blijft verboden.
 const HOST = process.env.CHRONICLE_HOST || "127.0.0.1";
 const PORT = process.env.CHRONICLE_PORT || 4577;
 
@@ -232,18 +232,39 @@ function startMemoryProcess() {
 
 startMemoryProcess();
 
-const server = app.listen(PORT, HOST, () => {
-  console.log(`\n  Chronicle local API running at http://${HOST}:${PORT}`);
+const LOOPBACK_HOSTS = ["127.0.0.1", "localhost", "::1"];
+
+// Loopback is altijd gebonden: lokale tools (mcpServer.js, de rook-test,
+// shutdown-paths) moeten blijven werken, ook als CHRONICLE_HOST gezet is.
+// Met CHRONICLE_HOST bindt dezelfde poort op dat tweede, benoemde interface —
+// twee listeners op één poort mag, want verschillende adressen. Nooit
+// 0.0.0.0: alleen benoemde interfaces, anders hangt alles aan het open
+// internet.
+const server = app.listen(PORT, "127.0.0.1", () => {
+  console.log(`\n  Chronicle local API running at http://127.0.0.1:${PORT}`);
   console.log(`  Token: ${TOKEN}`);
   console.log(`  (token for capture clients & the UI; mcpServer.js reads data/token.txt itself)`);
-  if (!["127.0.0.1", "localhost", "::1"].includes(HOST)) {
-    console.log(`  ⚠ Binding outside loopback: every API route now enforces the bearer token`);
-    console.log(`    (memory/persona/ingest), and GET /api/settings/token is`);
-    console.log(`    loopback-only — hand out server/data/token.txt out-of-band.\n`);
-  } else {
-    console.log("");
+  if (!LOOPBACK_HOSTS.includes(HOST)) {
+    console.log(`  ⚠ Also bound on ${HOST}:${PORT}: every API route enforces the bearer`);
+    console.log(`    token (memory/persona/ingest), and GET /api/settings/token is`);
+    console.log(`    loopback-only — hand out server/data/token.txt out-of-band.`);
   }
+  console.log("");
 });
+
+let extraServer = null;
+if (!LOOPBACK_HOSTS.includes(HOST)) {
+  extraServer = app.listen(PORT, HOST, () => {
+    console.log(`  Chronicle local API also listening at http://${HOST}:${PORT}`);
+  });
+  // Het tailnet-IP kan bij een reboot nog niet bestaan als dit proces via
+  // pm2 al start; loopback niet laten meevallen op een mislukte extra
+  // binding — loggen en doorgaan is genoeg.
+  extraServer.on("error", (err) => {
+    console.error(`  ⚠ Could not bind ${HOST}:${PORT} (${err.code || err.message}) — loopback still works`);
+    extraServer = null;
+  });
+}
 
 function shutdown() {
   console.log("\n  Shutting down Chronicle and subprocesses...");
@@ -257,7 +278,10 @@ function shutdown() {
     }
   }
 
-  server.close(() => process.exit(0));
+  server.close(() => {
+    if (extraServer) extraServer.close();
+    process.exit(0);
+  });
 }
 
 process.on("SIGINT", shutdown);

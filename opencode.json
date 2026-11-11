@@ -5,7 +5,7 @@
       "type": "local",
       "command": ["node", "server/mcpServer.js"],
       "environment": {
-        "CHRONICLE_API_URL": "http://127.0.0.1:4577",
+        "CHRONICLE_API_URL": "http://100.65.0.15:4577",
         "CHRONICLE_TOKEN": "{env:CHRONICLE_TOKEN}"
       },
       "enabled": true

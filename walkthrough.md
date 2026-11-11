@@ -66,3 +66,33 @@
     `server/`-suite: 20 testbestanden geslaagd.
   - Migratie nog niet toegepast op een database; `IF NOT EXISTS` maakt
     herhaling veilig.
+
+## 2026-11-11 (Dual-bind 4577: loopback + tailnet tegelijk)
+
+- Findings:
+  - "Foundation draait niet meer op Contabo" bleek geen procesprobleem:
+    pm2 `chronicle` draaide gezond. Sinds de beveiligingsfix van 5 nov
+    (publieke chronicle-db) staat `CHRONICLE_HOST=100.65.0.15` in
+    `/opt/Foundation/.env`, en `server/index.js` bond toen **alléén** dat
+    ene interface. `127.0.0.1:4577` gaf op de VPS zelf connection refused.
+  - Alles wat via loopback praat viel daardoor om: de `foundation`-MCP
+    (`opencode.json`, `CHRONICLE_API_URL=http://127.0.0.1:4577`) gaf
+    "Chronicle server unreachable", de rook-test (DEPLOYMENT §5) faalde,
+    SSH-tunnels naar loopback waren nutteloos. Buitenom (tailnet) bleef
+    `http://100.65.0.15:4577` wél bereikbaar.
+- Conclusions:
+  - Binden op **beide** interfaces in plaats van één: loopback altijd,
+    plus CHRONICLE_HOST als die gezet is. Twee listeners op dezelfde poort
+    mag (verschillende adressen), en 0.0.0.0 blijft verboden.
+  - Een mislukte extra binding (tailnet-IP nog niet up bij boot) mag de
+    loopback-listener niet mee laten vallen: loggen en doorgaan.
+- Actions:
+  - `server/index.js`: `app.listen(PORT, "127.0.0.1")` als primaire
+    listener; bij een niet-loopback `CHRONICLE_HOST` een tweede listener op
+    hetzelfde poortnummer, met eigen error-handler die de crash opvangt en
+    alleen de extra binding opgeeft. `shutdown` sluit nu beide.
+  - `opencode.json`: `CHRONICLE_API_URL` → `http://100.65.0.15:4577`
+    (werkt op de VPS én via Tailscale vanaf Bo's pc).
+  - Validatie: `node --check` + volledige `server/`-suite (20
+    testbestanden geslaagd); op de VPS na deploy beide bindings bewezen
+    via `ss` en curl op beide adressen.
